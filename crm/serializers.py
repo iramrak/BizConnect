@@ -21,7 +21,7 @@ from .models import ActionLog, Client, Deal, Task, User
 class UserShortSerializer(serializers.ModelSerializer):
     """Compact user representation for embedding in Deal / Task responses."""
 
-    full_name = serializers.CharField(source="full_name", read_only=True)
+    full_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
@@ -45,7 +45,7 @@ class ClientShortSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """Full user representation.  Password is write-only."""
 
-    full_name = serializers.CharField(source="full_name", read_only=True)
+    full_name = serializers.CharField(read_only=True)
 
     class Meta:
         model = User

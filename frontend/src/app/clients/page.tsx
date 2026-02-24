@@ -1,0 +1,236 @@
+/**
+ * CleanDerect CRM — Clients Page
+ *
+ * Features:
+ * - Fetches clients from Django API with JWT auth
+ * - Live search via ?search= query parameter
+ * - Skeleton loader while data is loading
+ * - Responsive modern table
+ */
+
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { Search, Plus, Users, Phone, Mail, Building2, Loader2 } from "lucide-react";
+import api from "@/lib/api";
+import type { Client, PaginatedResponse } from "@/types";
+
+export default function ClientsPage() {
+    const [clients, setClients] = useState<Client[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
+    const [totalCount, setTotalCount] = useState(0);
+
+    const fetchClients = useCallback(async (query: string) => {
+        setLoading(true);
+        try {
+            const params: Record<string, string> = {};
+            if (query.trim()) params.search = query.trim();
+
+            const res = await api.get<PaginatedResponse<Client>>("/clients/", { params });
+            setClients(res.data.results);
+            setTotalCount(res.data.count);
+        } catch (err) {
+            console.error("Failed to fetch clients:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // Initial load
+    useEffect(() => {
+        fetchClients("");
+    }, [fetchClients]);
+
+    // Debounced search
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            fetchClients(search);
+        }, 400);
+        return () => clearTimeout(timeout);
+    }, [search, fetchClients]);
+
+    const formatDate = (iso: string) =>
+        new Date(iso).toLocaleDateString("ru-RU", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
+
+    return (
+        <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+            {/* ── Header ─────────────────────────────── */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-blue-500/10">
+                            <Users className="w-6 h-6 text-blue-400" />
+                        </div>
+                        Клиенты
+                    </h1>
+                    <p className="text-slate-400 mt-1 text-sm">
+                        {loading ? "Загрузка…" : `${totalCount} ${pluralize(totalCount)}`}
+                    </p>
+                </div>
+
+                <button
+                    onClick={() => console.log("TODO: open add client modal")}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all duration-200"
+                >
+                    <Plus className="w-4 h-4" />
+                    Добавить клиента
+                </button>
+            </div>
+
+            {/* ── Search ─────────────────────────────── */}
+            <div className="relative mb-6">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
+                    type="text"
+                    placeholder="Поиск по имени, телефону или email…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-11 pr-4 py-3 bg-slate-800/50 border border-slate-700/50 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all text-sm"
+                />
+                {loading && search && (
+                    <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400 animate-spin" />
+                )}
+            </div>
+
+            {/* ── Table ──────────────────────────────── */}
+            <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b border-slate-700/50">
+                                <th className="text-left py-3.5 px-5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                    Имя
+                                </th>
+                                <th className="text-left py-3.5 px-5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <Building2 className="w-3.5 h-3.5" /> Компания
+                                    </span>
+                                </th>
+                                <th className="text-left py-3.5 px-5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <Phone className="w-3.5 h-3.5" /> Телефон
+                                    </span>
+                                </th>
+                                <th className="text-left py-3.5 px-5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                    <span className="inline-flex items-center gap-1.5">
+                                        <Mail className="w-3.5 h-3.5" /> Email
+                                    </span>
+                                </th>
+                                <th className="text-left py-3.5 px-5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                    Добавлен
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody className="divide-y divide-slate-700/30">
+                            {loading
+                                ? Array.from({ length: 6 }).map((_, i) => (
+                                    <SkeletonRow key={i} />
+                                ))
+                                : clients.length === 0
+                                    ? (
+                                        <tr>
+                                            <td colSpan={5} className="text-center py-16 text-slate-500">
+                                                <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                                                {search
+                                                    ? "Клиенты не найдены. Попробуйте другой запрос."
+                                                    : "Список клиентов пуст. Добавьте первого клиента!"}
+                                            </td>
+                                        </tr>
+                                    )
+                                    : clients.map((client) => (
+                                        <tr
+                                            key={client.id}
+                                            className="hover:bg-slate-700/20 transition-colors cursor-pointer"
+                                        >
+                                            <td className="py-3.5 px-5">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                                                        {client.first_name.charAt(0).toUpperCase()}
+                                                        {client.last_name?.charAt(0)?.toUpperCase() || ""}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-white font-medium">
+                                                            {client.first_name} {client.last_name}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-3.5 px-5 text-slate-300">
+                                                {client.company || (
+                                                    <span className="text-slate-600">—</span>
+                                                )}
+                                            </td>
+                                            <td className="py-3.5 px-5">
+                                                {client.phone ? (
+                                                    <span className="text-slate-300 font-mono text-xs">
+                                                        {client.phone}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-slate-600">—</span>
+                                                )}
+                                            </td>
+                                            <td className="py-3.5 px-5">
+                                                {client.email ? (
+                                                    <span className="text-blue-400 hover:underline text-xs">
+                                                        {client.email}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-slate-600">—</span>
+                                                )}
+                                            </td>
+                                            <td className="py-3.5 px-5 text-slate-500 text-xs">
+                                                {formatDate(client.created_at)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* ── Skeleton row ──────────────────────────── */
+
+function SkeletonRow() {
+    return (
+        <tr className="animate-pulse">
+            <td className="py-3.5 px-5">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-slate-700" />
+                    <div className="h-4 w-28 bg-slate-700 rounded" />
+                </div>
+            </td>
+            <td className="py-3.5 px-5">
+                <div className="h-4 w-24 bg-slate-700 rounded" />
+            </td>
+            <td className="py-3.5 px-5">
+                <div className="h-4 w-28 bg-slate-700 rounded" />
+            </td>
+            <td className="py-3.5 px-5">
+                <div className="h-4 w-32 bg-slate-700 rounded" />
+            </td>
+            <td className="py-3.5 px-5">
+                <div className="h-4 w-20 bg-slate-700 rounded" />
+            </td>
+        </tr>
+    );
+}
+
+/* ── Pluralization helper ──────────────────── */
+
+function pluralize(count: number): string {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+
+    if (mod10 === 1 && mod100 !== 11) return "клиент";
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "клиента";
+    return "клиентов";
+}

@@ -1,0 +1,350 @@
+/**
+ * CleanDerect CRM — Tasks Page ("Мои дела")
+ *
+ * Features:
+ * - Tabs: All / Today / Overdue / Completed
+ * - Task-type icons (Call, Meeting, Email)
+ * - Checkbox toggle → PATCH status with optimistic update
+ * - Overdue deadline highlighted in red
+ * - Related deal & client badges
+ */
+
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import {
+    ListTodo,
+    Plus,
+    Phone,
+    CalendarDays,
+    Mail,
+    CheckCircle2,
+    Circle,
+    Clock,
+    AlertTriangle,
+    Handshake,
+    User,
+    Loader2,
+} from "lucide-react";
+import api from "@/lib/api";
+import type { Task, PaginatedResponse } from "@/types";
+
+/* ── Tabs ──────────────────────────────────── */
+
+type TabKey = "all" | "today" | "overdue" | "completed";
+
+interface TabDef {
+    key: TabKey;
+    label: string;
+    icon: React.ElementType;
+    color: string;
+}
+
+const TABS: TabDef[] = [
+    { key: "all", label: "Все", icon: ListTodo, color: "text-blue-400" },
+    { key: "today", label: "На сегодня", icon: CalendarDays, color: "text-amber-400" },
+    { key: "overdue", label: "Просроченные", icon: AlertTriangle, color: "text-red-400" },
+    { key: "completed", label: "Выполненные", icon: CheckCircle2, color: "text-emerald-400" },
+];
+
+/* ── Task type config ─────────────────────── */
+
+const TASK_TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
+    call: { icon: Phone, color: "text-sky-400", bg: "bg-sky-400/10" },
+    meeting: { icon: CalendarDays, color: "text-violet-400", bg: "bg-violet-400/10" },
+    email: { icon: Mail, color: "text-amber-400", bg: "bg-amber-400/10" },
+};
+
+/* ── Helpers ───────────────────────────────── */
+
+function todayStr(): string {
+    return new Date().toISOString().slice(0, 10);
+}
+
+function isOverdue(task: Task): boolean {
+    if (!task.deadline || task.status === "completed") return false;
+    return task.deadline < todayStr();
+}
+
+function isToday(task: Task): boolean {
+    if (!task.deadline) return false;
+    return task.deadline.slice(0, 10) === todayStr();
+}
+
+function formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString("ru-RU", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+    });
+}
+
+function filterTasks(tasks: Task[], tab: TabKey): Task[] {
+    switch (tab) {
+        case "today":
+            return tasks.filter((t) => t.status === "open" && isToday(t));
+        case "overdue":
+            return tasks.filter((t) => isOverdue(t));
+        case "completed":
+            return tasks.filter((t) => t.status === "completed");
+        default:
+            return tasks;
+    }
+}
+
+/* ── Page ──────────────────────────────────── */
+
+export default function TasksPage() {
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState<TabKey>("all");
+    const [togglingId, setTogglingId] = useState<number | null>(null);
+
+    const fetchTasks = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await api.get<PaginatedResponse<Task>>("/tasks/", {
+                params: { page_size: 200 },
+            });
+            setTasks(res.data.results);
+        } catch (err) {
+            console.error("Failed to fetch tasks:", err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { fetchTasks(); }, [fetchTasks]);
+
+    const toggleStatus = async (task: Task) => {
+        const newStatus = task.status === "completed" ? "open" : "completed";
+        setTogglingId(task.id);
+
+        // Optimistic update
+        setTasks((prev) =>
+            prev.map((t) => (t.id === task.id ? { ...t, status: newStatus as Task["status"] } : t))
+        );
+
+        try {
+            await api.patch(`/tasks/${task.id}/`, { status: newStatus });
+        } catch (err) {
+            console.error("Failed to toggle task:", err);
+            fetchTasks(); // revert
+        } finally {
+            setTogglingId(null);
+        }
+    };
+
+    const filtered = filterTasks(tasks, activeTab);
+    const overdueCount = tasks.filter(isOverdue).length;
+
+    return (
+        <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+            {/* ── Header ─────────────────────────── */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                <div>
+                    <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+                        <div className="p-2 rounded-xl bg-emerald-500/10">
+                            <ListTodo className="w-6 h-6 text-emerald-400" />
+                        </div>
+                        Задачи
+                    </h1>
+                    <p className="text-slate-400 mt-1 text-sm">
+                        {loading
+                            ? "Загрузка…"
+                            : overdueCount > 0
+                                ? `${tasks.length} задач · ${overdueCount} просрочено`
+                                : `${tasks.length} задач`}
+                    </p>
+                </div>
+
+                <button
+                    onClick={() => console.log("TODO: open add task modal")}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all duration-200"
+                >
+                    <Plus className="w-4 h-4" />
+                    Новая задача
+                </button>
+            </div>
+
+            {/* ── Tabs ───────────────────────────── */}
+            <div className="flex gap-1 bg-slate-800/40 border border-slate-700/40 p-1 rounded-xl mb-6 overflow-x-auto">
+                {TABS.map((tab) => {
+                    const count =
+                        tab.key === "all"
+                            ? tasks.length
+                            : tab.key === "today"
+                                ? tasks.filter((t) => t.status === "open" && isToday(t)).length
+                                : tab.key === "overdue"
+                                    ? overdueCount
+                                    : tasks.filter((t) => t.status === "completed").length;
+
+                    const isActive = activeTab === tab.key;
+
+                    return (
+                        <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${isActive
+                                    ? "bg-slate-700/70 text-white shadow-sm"
+                                    : "text-slate-400 hover:text-white hover:bg-slate-700/30"
+                                }`}
+                        >
+                            <tab.icon className={`w-4 h-4 ${isActive ? tab.color : ""}`} />
+                            {tab.label}
+                            <span
+                                className={`text-xs px-1.5 py-0.5 rounded-full ${isActive
+                                        ? "bg-slate-600/60 text-slate-200"
+                                        : "bg-slate-700/40 text-slate-500"
+                                    }`}
+                            >
+                                {count}
+                            </span>
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* ── Task List ──────────────────────── */}
+            <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl overflow-hidden divide-y divide-slate-700/30">
+                {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
+                ) : filtered.length === 0 ? (
+                    <div className="text-center py-16 text-slate-500">
+                        <ListTodo className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                        {activeTab === "all"
+                            ? "Нет задач. Создайте первую!"
+                            : activeTab === "today"
+                                ? "На сегодня задач нет 🎉"
+                                : activeTab === "overdue"
+                                    ? "Просроченных задач нет 👍"
+                                    : "Выполненных задач пока нет"}
+                    </div>
+                ) : (
+                    filtered.map((task) => (
+                        <TaskRow
+                            key={task.id}
+                            task={task}
+                            toggling={togglingId === task.id}
+                            onToggle={toggleStatus}
+                        />
+                    ))
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* ── Task Row ──────────────────────────────── */
+
+function TaskRow({
+    task,
+    toggling,
+    onToggle,
+}: {
+    task: Task;
+    toggling: boolean;
+    onToggle: (task: Task) => void;
+}) {
+    const completed = task.status === "completed";
+    const overdue = isOverdue(task);
+
+    const typeConfig = TASK_TYPE_CONFIG[task.task_type] ?? TASK_TYPE_CONFIG.call;
+    const TypeIcon = typeConfig.icon;
+
+    const clientName = task.client
+        ? `${task.client.first_name} ${task.client.last_name}`.trim()
+        : null;
+
+    const dealTitle = task.deal?.title ?? null;
+
+    return (
+        <div
+            className={`flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-slate-700/15 group ${completed ? "opacity-60" : ""
+                }`}
+        >
+            {/* Checkbox */}
+            <button
+                onClick={() => onToggle(task)}
+                disabled={toggling}
+                className="shrink-0 transition-transform active:scale-90"
+            >
+                {toggling ? (
+                    <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+                ) : completed ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                ) : (
+                    <Circle className="w-5 h-5 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                )}
+            </button>
+
+            {/* Type icon */}
+            <div className={`w-8 h-8 rounded-lg ${typeConfig.bg} flex items-center justify-center shrink-0`}>
+                <TypeIcon className={`w-4 h-4 ${typeConfig.color}`} />
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                    <span
+                        className={`text-sm font-medium truncate ${completed ? "line-through text-slate-500" : "text-white"
+                            }`}
+                    >
+                        {task.title}
+                    </span>
+                </div>
+
+                {/* Badges — deal + client */}
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    {dealTitle && (
+                        <span className="inline-flex items-center gap-1 text-xs text-indigo-400 bg-indigo-400/10 px-2 py-0.5 rounded-md">
+                            <Handshake className="w-3 h-3" />
+                            <span className="truncate max-w-[140px]">{dealTitle}</span>
+                        </span>
+                    )}
+                    {clientName && (
+                        <span className="inline-flex items-center gap-1 text-xs text-cyan-400 bg-cyan-400/10 px-2 py-0.5 rounded-md">
+                            <User className="w-3 h-3" />
+                            <span className="truncate max-w-[140px]">{clientName}</span>
+                        </span>
+                    )}
+                </div>
+            </div>
+
+            {/* Deadline */}
+            {task.deadline && (
+                <div
+                    className={`flex items-center gap-1.5 text-xs shrink-0 ${overdue
+                            ? "text-red-400 font-medium"
+                            : completed
+                                ? "text-slate-600"
+                                : "text-slate-500"
+                        }`}
+                >
+                    {overdue ? (
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                    ) : (
+                        <Clock className="w-3.5 h-3.5" />
+                    )}
+                    {formatDate(task.deadline)}
+                </div>
+            )}
+        </div>
+    );
+}
+
+/* ── Skeleton Row ──────────────────────────── */
+
+function SkeletonRow() {
+    return (
+        <div className="flex items-center gap-4 px-5 py-3.5 animate-pulse">
+            <div className="w-5 h-5 rounded-full bg-slate-700 shrink-0" />
+            <div className="w-8 h-8 rounded-lg bg-slate-700 shrink-0" />
+            <div className="flex-1 space-y-2">
+                <div className="h-4 w-48 bg-slate-700 rounded" />
+                <div className="h-3 w-32 bg-slate-700 rounded" />
+            </div>
+            <div className="h-3 w-20 bg-slate-700 rounded shrink-0" />
+        </div>
+    );
+}

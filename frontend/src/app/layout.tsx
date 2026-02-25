@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import Sidebar from "@/components/Sidebar";
+import AIChatWidget from "@/components/AIChatWidget";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,6 +28,7 @@ export default function RootLayout({
             <Sidebar />
             <main className="flex-1 overflow-y-auto">{children}</main>
           </div>
+          <AIChatWidget />
         </AuthProvider>
       </body>
     </html>

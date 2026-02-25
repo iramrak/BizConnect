@@ -8,6 +8,7 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    AIChatView,
     ActionLogViewSet,
     ClientViewSet,
     DealViewSet,
@@ -24,4 +25,5 @@ router.register(r"action-logs", ActionLogViewSet, basename="actionlog")
 
 urlpatterns = [
     path("", include(router.urls)),
+    path("ai/chat/", AIChatView.as_view(), name="ai-chat"),
 ]

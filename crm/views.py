@@ -6,8 +6,10 @@ RBAC logic:
 - Manager       → only their own Deals (manager=user) and Tasks (creator=user).
 """
 
-from rest_framework import viewsets
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import ActionLog, Client, Deal, Task, User
 from .serializers import (
@@ -111,3 +113,37 @@ class ActionLogViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
     filterset_fields = ["user"]
     ordering_fields = ["created_at"]
+
+
+# ───────────────────────────────────────
+# AI Chat
+# ───────────────────────────────────────
+
+class AIChatView(APIView):
+    """
+    POST /api/ai/chat/
+    Body: { "message": "..." }
+    Response: { "reply": "...", "proposed_action": {...} | null }
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        message = request.data.get("message", "").strip()
+        if not message:
+            return Response(
+                {"error": "Поле 'message' обязательно."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Optional: pass conversation history from the frontend
+        history = request.data.get("history", None)
+
+        from .ai_service import chat_with_ai
+
+        result = chat_with_ai(
+            user_message=message,
+            conversation_history=history,
+        )
+
+        return Response(result, status=status.HTTP_200_OK)

@@ -109,7 +109,7 @@ class DealSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at", "manager"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -148,7 +148,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "creator",
             "created_at",
         ]
-        read_only_fields = ["id", "created_at"]
+        read_only_fields = ["id", "created_at", "creator"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

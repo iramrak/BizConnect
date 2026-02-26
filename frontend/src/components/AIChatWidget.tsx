@@ -99,10 +99,18 @@ export default function AIChatWidget() {
         scrollToBottom();
 
         try {
+            // Build conversation history for context (OpenAI format)
+            const history = messages
+                .filter((m) => m.role === "user" || m.role === "ai")
+                .map((m) => ({
+                    role: m.role === "ai" ? "assistant" : "user",
+                    content: m.text,
+                }));
+
             const res = await api.post<{
                 reply: string;
                 proposed_action: ProposedAction | null;
-            }>("/ai/chat/", { message: text });
+            }>("/ai/chat/", { message: text, history });
 
             const { reply, proposed_action } = res.data;
 
@@ -186,8 +194,8 @@ export default function AIChatWidget() {
                     if (!open) setTimeout(() => inputRef.current?.focus(), 200);
                 }}
                 className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center transition-all duration-300 ${open
-                        ? "bg-slate-700 hover:bg-slate-600 rotate-0"
-                        : "bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-blue-500/30"
+                    ? "bg-slate-700 hover:bg-slate-600 rotate-0"
+                    : "bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-blue-500/30"
                     }`}
                 title={open ? "Закрыть чат" : "ИИ-ассистент"}
             >
@@ -295,10 +303,10 @@ function MessageBubble({
         <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
             <div
                 className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${isUser
-                        ? "bg-blue-500 text-white rounded-br-md"
-                        : isSystem
-                            ? "bg-slate-800/60 text-slate-400 border border-slate-700/30 rounded-bl-md text-xs"
-                            : "bg-slate-800/80 text-slate-200 border border-slate-700/40 rounded-bl-md"
+                    ? "bg-blue-500 text-white rounded-br-md"
+                    : isSystem
+                        ? "bg-slate-800/60 text-slate-400 border border-slate-700/30 rounded-bl-md text-xs"
+                        : "bg-slate-800/80 text-slate-200 border border-slate-700/40 rounded-bl-md"
                     }`}
             >
                 <p className="whitespace-pre-wrap">{message.text}</p>

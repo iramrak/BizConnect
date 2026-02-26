@@ -75,6 +75,9 @@ class DealViewSet(viewsets.ModelViewSet):
             qs = qs.filter(manager=self.request.user)
         return qs
 
+    def perform_create(self, serializer):
+        serializer.save(manager=self.request.user)
+
 
 # ───────────────────────────────────────
 # Task  (RBAC)
@@ -97,6 +100,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         if self.request.user.role == "manager":
             qs = qs.filter(creator=self.request.user)
         return qs
+
+    def perform_create(self, serializer):
+        serializer.save(creator=self.request.user)
 
 
 # ───────────────────────────────────────

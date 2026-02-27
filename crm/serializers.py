@@ -81,7 +81,7 @@ class ClientSerializer(serializers.ModelSerializer):
 class DealSerializer(serializers.ModelSerializer):
     """
     Deal serializer.
-    - WRITE: client / manager as PK (default ModelSerializer behaviour).
+    - WRITE: accepts optional client_name (string) for AI-driven creation.
     - READ:  to_representation() replaces PKs with nested objects.
     """
 
@@ -91,6 +91,10 @@ class DealSerializer(serializers.ModelSerializer):
     currency_display = serializers.CharField(
         source="get_currency_display", read_only=True
     )
+    # Virtual field: AI sends client name as text, ViewSet resolves to FK
+    client_name = serializers.CharField(
+        write_only=True, required=False, allow_blank=True
+    )
 
     class Meta:
         model = Deal
@@ -98,6 +102,7 @@ class DealSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "client",
+            "client_name",
             "amount",
             "currency",
             "currency_display",
@@ -109,7 +114,7 @@ class DealSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "manager"]
+        read_only_fields = ["id", "created_at", "updated_at", "manager", "client"]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

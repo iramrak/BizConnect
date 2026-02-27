@@ -2,10 +2,10 @@
  * CleanDerect CRM — Deals Kanban Board
  *
  * Features:
- * - Fetches deals from API, groups by stage
- * - Horizontal scrollable Kanban columns
- * - Stage change via dropdown on each card → PATCH request
- * - Color-coded stage headers
+ * - Drag & Drop with @hello-pangea/dnd
+ * - Optimistic stage change via PATCH
+ * - Deal detail slide-over modal
+ * - Zustand auto-refresh integration
  */
 
 "use client";
@@ -20,8 +20,20 @@ import {
     ChevronDown,
     Loader2,
     X,
+    Building2,
+    Clock,
+    TrendingUp,
+    Mail,
+    Phone,
 } from "lucide-react";
+import {
+    DragDropContext,
+    Droppable,
+    Draggable,
+    type DropResult,
+} from "@hello-pangea/dnd";
 import api from "@/lib/api";
+import { useCRMStore } from "@/lib/store";
 import type { Deal, DealStage, PaginatedResponse } from "@/types";
 
 /* ── Stage config ─────────────────────────── */
@@ -29,10 +41,10 @@ import type { Deal, DealStage, PaginatedResponse } from "@/types";
 interface StageConfig {
     key: DealStage;
     label: string;
-    color: string;      // gradient from
-    colorTo: string;     // gradient to
-    bg: string;          // column background
-    dot: string;         // header dot color
+    color: string;
+    colorTo: string;
+    bg: string;
+    dot: string;
 }
 
 const STAGES: StageConfig[] = [
@@ -44,6 +56,8 @@ const STAGES: StageConfig[] = [
     { key: "closed_won", label: "Успех", color: "from-emerald-500", colorTo: "to-emerald-600", bg: "bg-emerald-500/5", dot: "bg-emerald-400" },
     { key: "closed_lost", label: "Провал", color: "from-red-500", colorTo: "to-red-600", bg: "bg-red-500/5", dot: "bg-red-400" },
 ];
+
+const STAGE_MAP = Object.fromEntries(STAGES.map((s) => [s.key, s]));
 
 type GroupedDeals = Record<DealStage, Deal[]>;
 
@@ -63,11 +77,11 @@ function groupByStage(deals: Deal[]): GroupedDeals {
 export default function DealsPage() {
     const [deals, setDeals] = useState<Deal[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
 
     const fetchDeals = useCallback(async () => {
         setLoading(true);
         try {
-            // Fetch all deals — increase page_size to get them all on one page for Kanban
             const res = await api.get<PaginatedResponse<Deal>>("/deals/", {
                 params: { page_size: 200 },
             });
@@ -81,8 +95,13 @@ export default function DealsPage() {
 
     useEffect(() => { fetchDeals(); }, [fetchDeals]);
 
+    // Auto-refresh when AI creates/updates a deal
+    const dealsVersion = useCRMStore((s) => s.dealsVersion);
+    useEffect(() => {
+        if (dealsVersion > 0) fetchDeals();
+    }, [dealsVersion, fetchDeals]);
+
     const handleStageChange = async (dealId: number, newStage: DealStage) => {
-        // Optimistic update
         setDeals((prev) =>
             prev.map((d) => (d.id === dealId ? { ...d, stage: newStage } : d))
         );
@@ -90,9 +109,22 @@ export default function DealsPage() {
             await api.patch(`/deals/${dealId}/`, { stage: newStage });
         } catch (err) {
             console.error("Failed to update stage:", err);
-            // Revert on failure
             fetchDeals();
         }
+    };
+
+    /* ── Drag & Drop handler ────────────── */
+    const onDragEnd = (result: DropResult) => {
+        const { destination, draggableId } = result;
+        if (!destination) return;
+
+        const newStage = destination.droppableId as DealStage;
+        const dealId = parseInt(draggableId, 10);
+        const deal = deals.find((d) => d.id === dealId);
+
+        if (!deal || deal.stage === newStage) return;
+
+        handleStageChange(dealId, newStage);
     };
 
     const grouped = groupByStage(deals);
@@ -119,7 +151,7 @@ export default function DealsPage() {
 
                     <button
                         onClick={() => console.log("TODO: open add deal modal")}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all duration-200"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all duration-200"
                     >
                         <Plus className="w-4 h-4" />
                         Новая сделка
@@ -127,36 +159,49 @@ export default function DealsPage() {
                 </div>
             </div>
 
-            {/* ── Kanban Board ───────────────────── */}
-            <div className="flex-1 overflow-x-auto overflow-y-hidden px-6 lg:px-8 pb-6">
-                <div className="flex gap-4 h-full min-w-max">
-                    {STAGES.map((stage) => (
-                        <KanbanColumn
-                            key={stage.key}
-                            stage={stage}
-                            deals={grouped[stage.key]}
-                            loading={loading}
-                            onStageChange={handleStageChange}
-                        />
-                    ))}
+            {/* ── Kanban Board with DnD ────────────── */}
+            <DragDropContext onDragEnd={onDragEnd}>
+                <div className="flex-1 overflow-x-auto overflow-y-hidden px-6 lg:px-8 pb-6">
+                    <div className="flex gap-4 h-full min-w-max">
+                        {STAGES.map((stage) => (
+                            <KanbanColumn
+                                key={stage.key}
+                                stage={stage}
+                                deals={grouped[stage.key]}
+                                loading={loading}
+                                onStageChange={handleStageChange}
+                                onCardClick={setSelectedDeal}
+                            />
+                        ))}
+                    </div>
                 </div>
-            </div>
+            </DragDropContext>
+
+            {/* ── Deal Detail Modal ──────────────── */}
+            {selectedDeal && (
+                <DealDetailModal
+                    deal={selectedDeal}
+                    onClose={() => setSelectedDeal(null)}
+                />
+            )}
         </div>
     );
 }
 
-/* ── Kanban Column ─────────────────────────── */
+/* ── Kanban Column (Droppable) ─────────────── */
 
 function KanbanColumn({
     stage,
     deals,
     loading,
     onStageChange,
+    onCardClick,
 }: {
     stage: StageConfig;
     deals: Deal[];
     loading: boolean;
     onStageChange: (dealId: number, newStage: DealStage) => void;
+    onCardClick: (deal: Deal) => void;
 }) {
     const stageTotal = deals.reduce((sum, d) => sum + parseFloat(d.amount || "0"), 0);
 
@@ -180,19 +225,44 @@ function KanbanColumn({
                 )}
             </div>
 
-            {/* Cards */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-2.5 scrollbar-thin">
-                {loading
-                    ? Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)
-                    : deals.map((deal) => (
-                        <DealCard
-                            key={deal.id}
-                            deal={deal}
-                            stageColor={stage.color}
-                            onStageChange={onStageChange}
-                        />
-                    ))}
-            </div>
+            {/* Droppable Cards Area */}
+            <Droppable droppableId={stage.key}>
+                {(provided, snapshot) => (
+                    <div
+                        ref={provided.innerRef}
+                        {...provided.droppableProps}
+                        className={`flex-1 overflow-y-auto p-3 space-y-2.5 scrollbar-thin transition-colors duration-200 ${snapshot.isDraggingOver ? "bg-slate-700/10" : ""
+                            }`}
+                    >
+                        {loading
+                            ? Array.from({ length: 2 }).map((_, i) => <SkeletonCard key={i} />)
+                            : deals.map((deal, index) => (
+                                <Draggable
+                                    key={deal.id}
+                                    draggableId={String(deal.id)}
+                                    index={index}
+                                >
+                                    {(dragProvided, dragSnapshot) => (
+                                        <div
+                                            ref={dragProvided.innerRef}
+                                            {...dragProvided.draggableProps}
+                                            {...dragProvided.dragHandleProps}
+                                        >
+                                            <DealCard
+                                                deal={deal}
+                                                stageColor={stage.color}
+                                                onStageChange={onStageChange}
+                                                onClick={() => onCardClick(deal)}
+                                                isDragging={dragSnapshot.isDragging}
+                                            />
+                                        </div>
+                                    )}
+                                </Draggable>
+                            ))}
+                        {provided.placeholder}
+                    </div>
+                )}
+            </Droppable>
         </div>
     );
 }
@@ -203,15 +273,18 @@ function DealCard({
     deal,
     stageColor,
     onStageChange,
+    onClick,
+    isDragging,
 }: {
     deal: Deal;
     stageColor: string;
     onStageChange: (dealId: number, newStage: DealStage) => void;
+    onClick: () => void;
+    isDragging: boolean;
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    // Close on click outside
     useEffect(() => {
         if (!menuOpen) return;
         const handler = (e: MouseEvent) => {
@@ -228,7 +301,11 @@ function DealCard({
         : "—";
 
     return (
-        <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-3.5 hover:border-slate-600/60 transition-all group">
+        <div
+            onClick={onClick}
+            className={`bg-slate-800/60 border border-slate-700/40 rounded-xl p-3.5 hover:border-slate-600/60 transition-all group cursor-pointer ${isDragging ? "shadow-2xl shadow-black/50 ring-2 ring-blue-500/40 rotate-2 scale-105" : ""
+                }`}
+        >
             {/* Title + Menu */}
             <div className="flex items-start justify-between gap-2 mb-2.5">
                 <h3 className="text-sm font-medium text-white leading-snug line-clamp-2">
@@ -236,18 +313,18 @@ function DealCard({
                 </h3>
                 <div className="relative" ref={menuRef}>
                     <button
-                        onClick={() => setMenuOpen(!menuOpen)}
+                        onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
                         className="p-1 rounded-md text-slate-500 hover:text-white hover:bg-slate-700/60 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Сменить стадию"
                     >
                         <ChevronDown className="w-3.5 h-3.5" />
                     </button>
 
-                    {/* Stage dropdown */}
                     {menuOpen && (
                         <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl shadow-black/40 py-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
                             <div className="px-3 py-1.5 flex items-center justify-between border-b border-slate-700/50 mb-1">
                                 <span className="text-xs text-slate-400 font-medium">Сменить стадию</span>
-                                <button onClick={() => setMenuOpen(false)} className="text-slate-500 hover:text-white">
+                                <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} className="text-slate-500 hover:text-white" title="Закрыть">
                                     <X className="w-3 h-3" />
                                 </button>
                             </div>
@@ -255,7 +332,8 @@ function DealCard({
                                 <button
                                     key={s.key}
                                     disabled={s.key === deal.stage}
-                                    onClick={() => {
+                                    onClick={(e) => {
+                                        e.stopPropagation();
                                         onStageChange(deal.id, s.key);
                                         setMenuOpen(false);
                                     }}
@@ -309,12 +387,152 @@ function DealCard({
                     </div>
                     <div className="w-full h-1 bg-slate-700/50 rounded-full overflow-hidden">
                         <div
-                            className={`h-full rounded-full bg-gradient-to-r ${stageColor} to-blue-500 transition-all duration-500`}
+                            className={`h-full rounded-full bg-linear-to-r ${stageColor} to-blue-500 transition-all duration-500`}
                             style={{ width: `${deal.probability}%` }}
                         />
                     </div>
                 </div>
             )}
+        </div>
+    );
+}
+
+/* ── Deal Detail Modal (Slide-over) ──────── */
+
+function DealDetailModal({
+    deal,
+    onClose,
+}: {
+    deal: Deal;
+    onClose: () => void;
+}) {
+    const stageConfig = STAGE_MAP[deal.stage];
+    const clientName = deal.client
+        ? `${deal.client.first_name} ${deal.client.last_name}`.trim()
+        : "—";
+
+    // Close on Escape
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Escape") onClose();
+        };
+        document.addEventListener("keydown", handler);
+        return () => document.removeEventListener("keydown", handler);
+    }, [onClose]);
+
+    return (
+        <>
+            {/* Backdrop */}
+            <div
+                className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+                onClick={onClose}
+            />
+
+            {/* Panel */}
+            <div className="fixed right-0 top-0 z-50 h-full w-full max-w-md bg-slate-900 border-l border-slate-700/50 shadow-2xl shadow-black/50 animate-in slide-in-from-right duration-300 overflow-y-auto">
+                {/* Header */}
+                <div className="sticky top-0 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/40 px-6 py-4 flex items-center justify-between z-10">
+                    <h2 className="text-lg font-semibold text-white truncate pr-4">
+                        {deal.title}
+                    </h2>
+                    <button
+                        onClick={onClose}
+                        className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors shrink-0"
+                        title="Закрыть"
+                    >
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="px-6 py-5 space-y-6">
+                    {/* Stage badge */}
+                    <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full ${stageConfig?.dot ?? "bg-slate-500"}`} />
+                        <span className="text-sm font-medium text-white">
+                            {stageConfig?.label ?? deal.stage}
+                        </span>
+                        {deal.probability > 0 && (
+                            <span className="ml-auto text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-lg">
+                                <TrendingUp className="w-3 h-3 inline mr-1" />
+                                {deal.probability}%
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Amount */}
+                    <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4">
+                        <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Бюджет</p>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-2xl font-bold text-emerald-400">
+                                {formatMoney(parseFloat(deal.amount || "0"))}
+                            </span>
+                            <span className="text-sm text-slate-400">{deal.currency_display || deal.currency}</span>
+                        </div>
+                    </div>
+
+                    {/* Info grid */}
+                    <div className="space-y-3">
+                        <DetailRow
+                            icon={User}
+                            label="Клиент"
+                            value={clientName}
+                        />
+                        {deal.client?.phone && (
+                            <DetailRow
+                                icon={Phone}
+                                label="Телефон"
+                                value={deal.client.phone}
+                            />
+                        )}
+                        <DetailRow
+                            icon={Building2}
+                            label="Менеджер"
+                            value={deal.manager?.full_name ?? "—"}
+                        />
+                        {deal.expected_close_date && (
+                            <DetailRow
+                                icon={CalendarDays}
+                                label="Ожидаемое закрытие"
+                                value={formatDate(deal.expected_close_date)}
+                            />
+                        )}
+                        <DetailRow
+                            icon={Clock}
+                            label="Создана"
+                            value={formatDate(deal.created_at)}
+                        />
+                        {deal.updated_at && (
+                            <DetailRow
+                                icon={Clock}
+                                label="Обновлена"
+                                value={formatDate(deal.updated_at)}
+                            />
+                        )}
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
+
+function DetailRow({
+    icon: Icon,
+    label,
+    value,
+}: {
+    icon: React.ElementType;
+    label: string;
+    value: string;
+}) {
+    return (
+        <div className="flex items-center justify-between py-2.5 border-b border-slate-700/20">
+            <div className="flex items-center gap-2 text-slate-400 text-sm">
+                <Icon className="w-4 h-4 shrink-0" />
+                {label}
+            </div>
+            <span className="text-sm text-white font-medium text-right max-w-[200px] truncate">
+                {value}
+            </span>
         </div>
     );
 }
@@ -347,5 +565,13 @@ function formatShortDate(iso: string): string {
     return new Date(iso).toLocaleDateString("ru-RU", {
         day: "numeric",
         month: "short",
+    });
+}
+
+function formatDate(iso: string): string {
+    return new Date(iso).toLocaleDateString("ru-RU", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
     });
 }

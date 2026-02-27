@@ -30,17 +30,24 @@ SYSTEM_PROMPT = """Ты — ИИ-ассистент CRM-системы CleanDere
 
 Правила:
 1. Отвечай на русском языке, кратко и по существу.
-2. Если пользователь просит что-то сделать в CRM (создать задачу, поменять
-   стадию сделки, добавить клиента и т.д.), ОБЯЗАТЕЛЬНО вызови функцию
-   `prepare_crm_action` с нужными параметрами.
+2. Если пользователь просит что-то сделать в CRM (создать задачу, сделку,
+   поменять стадию сделки, добавить клиента и т.д.), ОБЯЗАТЕЛЬНО вызови
+   функцию `prepare_crm_action` с нужными параметрами.
 3. НЕ выдумывай данные — если информации недостаточно, уточни у пользователя.
-4. Можешь предлагать action_type: create_task, update_deal, create_client.
-5. Для create_task payload может содержать: title, deadline (YYYY-MM-DD),
+4. ПРАВИЛА ВЫБОРА action_type:
+   - create_deal: пользователь просит создать СДЕЛКУ, продажу, проект, заказ.
+     Даже если упоминает клиента — это create_deal, НЕ create_client!
+   - create_task: пользователь просит создать ЗАДАЧУ (звонок, встречу, email).
+   - update_deal: пользователь просит ИЗМЕНИТЬ существующую сделку.
+   - create_client: ТОЛЬКО если прямо просит добавить человека/компанию в базу.
+5. Для create_task payload: title, deadline (YYYY-MM-DD),
    task_type (call / meeting / email), description.
-6. Для update_deal payload может содержать: deal_id, stage
+6. Для create_deal payload: title, amount, currency (KZT/RUB/USD/EUR),
+   client_name (если назван), stage (по умолчанию 'new'), expected_close_date.
+7. Для update_deal payload: deal_id, stage
    (new / in_progress / proposal / negotiation / payment / closed_won / closed_lost),
    amount, expected_close_date.
-7. Для create_client payload может содержать: first_name, last_name,
+8. Для create_client payload: first_name, last_name,
    phone, email, company.
 """
 
@@ -60,8 +67,19 @@ TOOLS = [
                 "properties": {
                     "action_type": {
                         "type": "string",
-                        "enum": ["create_task", "update_deal", "create_client"],
-                        "description": "Тип CRM-действия",
+                        "enum": ["create_task", "create_deal", "update_deal", "create_client"],
+                        "description": (
+                            "Тип CRM-действия. ВАЖНО — ПРАВИЛА ВЫБОРА: "
+                            "• 'create_deal' — если пользователь просит создать СДЕЛКУ, "
+                            "продажу, проект, заказ или контракт. Даже если упоминает "
+                            "имя клиента — это create_deal, а НЕ create_client! "
+                            "• 'create_task' — если просит создать ЗАДАЧУ: звонок, "
+                            "встречу, напоминание, email. "
+                            "• 'update_deal' — если просит ИЗМЕНИТЬ существующую сделку "
+                            "(сменить стадию, сумму, дату). "
+                            "• 'create_client' — ТОЛЬКО если прямо просит добавить "
+                            "нового ЧЕЛОВЕКА или КОМПАНИЮ в базу клиентов."
+                        ),
                     },
                     "payload": {
                         "type": "object",
@@ -71,6 +89,12 @@ TOOLS = [
                             "'title' (строка — название задачи), "
                             "'deadline' (строка YYYY-MM-DD — дата дедлайна), "
                             "'task_type' (строка: 'call', 'meeting' или 'email'). "
+                            "Если action_type='create_deal', ОБЯЗАТЕЛЬНО укажи: "
+                            "'title' (строка — название сделки), "
+                            "'amount' (строка — сумма, например '500000'), "
+                            "'currency' (строка: 'KZT', 'RUB', 'USD' или 'EUR'). "
+                            "Также можно указать 'client_name' (имя клиента, строка), "
+                            "'stage' (по умолчанию 'new'), 'expected_close_date' (YYYY-MM-DD). "
                             "Если action_type='update_deal', ОБЯЗАТЕЛЬНО укажи: "
                             "'deal_id' (число — ID сделки), и одно или несколько из: "
                             "'stage', 'amount', 'expected_close_date'. "
@@ -79,17 +103,27 @@ TOOLS = [
                             "а также 'phone', 'email', 'company' если известны."
                         ),
                         "properties": {
-                            "title": {"type": "string", "description": "Название задачи (для create_task)"},
+                            "title": {"type": "string", "description": "Название задачи или сделки (для create_task / create_deal)"},
                             "deadline": {"type": "string", "description": "Дедлайн в формате YYYY-MM-DD (для create_task)"},
                             "task_type": {
                                 "type": "string",
                                 "enum": ["call", "meeting", "email"],
                                 "description": "Тип задачи (для create_task)",
                             },
-                            "description": {"type": "string", "description": "Описание задачи (опционально)"},
+                            "description": {"type": "string", "description": "Описание задачи или сделки (опционально)"},
+                            "client_name": {"type": "string", "description": "Имя клиента для привязки к сделке (для create_deal)"},
+                            "amount": {"type": "string", "description": "Сумма сделки, только число (для create_deal / update_deal)"},
+                            "currency": {
+                                "type": "string",
+                                "enum": ["KZT", "RUB", "USD", "EUR"],
+                                "description": "Валюта сделки (для create_deal)",
+                            },
+                            "stage": {
+                                "type": "string",
+                                "enum": ["new", "in_progress", "proposal", "negotiation", "payment", "closed_won", "closed_lost"],
+                                "description": "Стадия сделки (для create_deal / update_deal, по умолчанию 'new')",
+                            },
                             "deal_id": {"type": "integer", "description": "ID сделки (для update_deal)"},
-                            "stage": {"type": "string", "description": "Новая стадия сделки (для update_deal)"},
-                            "amount": {"type": "string", "description": "Сумма сделки (для update_deal)"},
                             "expected_close_date": {"type": "string", "description": "Ожидаемая дата закрытия YYYY-MM-DD"},
                             "first_name": {"type": "string", "description": "Имя клиента (для create_client)"},
                             "last_name": {"type": "string", "description": "Фамилия клиента (для create_client)"},

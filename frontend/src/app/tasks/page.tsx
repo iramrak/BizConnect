@@ -27,6 +27,7 @@ import {
     Loader2,
 } from "lucide-react";
 import api from "@/lib/api";
+import { useCRMStore } from "@/lib/store";
 import type { Task, PaginatedResponse } from "@/types";
 
 /* ── Tabs ──────────────────────────────────── */
@@ -116,6 +117,12 @@ export default function TasksPage() {
 
     useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
+    // Auto-refresh when AI (or other component) creates/updates a task
+    const tasksVersion = useCRMStore((s) => s.tasksVersion);
+    useEffect(() => {
+        if (tasksVersion > 0) fetchTasks();
+    }, [tasksVersion, fetchTasks]);
+
     const toggleStatus = async (task: Task) => {
         const newStatus = task.status === "completed" ? "open" : "completed";
         setTogglingId(task.id);
@@ -186,16 +193,16 @@ export default function TasksPage() {
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${isActive
-                                    ? "bg-slate-700/70 text-white shadow-sm"
-                                    : "text-slate-400 hover:text-white hover:bg-slate-700/30"
+                                ? "bg-slate-700/70 text-white shadow-sm"
+                                : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                                 }`}
                         >
                             <tab.icon className={`w-4 h-4 ${isActive ? tab.color : ""}`} />
                             {tab.label}
                             <span
                                 className={`text-xs px-1.5 py-0.5 rounded-full ${isActive
-                                        ? "bg-slate-600/60 text-slate-200"
-                                        : "bg-slate-700/40 text-slate-500"
+                                    ? "bg-slate-600/60 text-slate-200"
+                                    : "bg-slate-700/40 text-slate-500"
                                     }`}
                             >
                                 {count}
@@ -315,10 +322,10 @@ function TaskRow({
             {task.deadline && (
                 <div
                     className={`flex items-center gap-1.5 text-xs shrink-0 ${overdue
-                            ? "text-red-400 font-medium"
-                            : completed
-                                ? "text-slate-600"
-                                : "text-slate-500"
+                        ? "text-red-400 font-medium"
+                        : completed
+                            ? "text-slate-600"
+                            : "text-slate-500"
                         }`}
                 >
                     {overdue ? (

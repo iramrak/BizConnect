@@ -22,11 +22,12 @@ import {
     ChevronDown,
 } from "lucide-react";
 import api from "@/lib/api";
+import { useCRMStore } from "@/lib/store";
 
 /* ── Types ─────────────────────────────────── */
 
 interface ProposedAction {
-    action_type: "create_task" | "update_deal" | "create_client";
+    action_type: "create_task" | "create_deal" | "update_deal" | "create_client";
     payload: Record<string, unknown>;
     human_description: string;
 }
@@ -43,6 +44,7 @@ interface ChatMessage {
 
 const ACTION_LABELS: Record<string, string> = {
     create_task: "Создать задачу",
+    create_deal: "Создать сделку",
     update_deal: "Обновить сделку",
     create_client: "Добавить клиента",
 };
@@ -67,6 +69,8 @@ export default function AIChatWidget() {
 
     // Don't render for unauthenticated users
     if (!session) return null;
+
+    const { invalidateTasks, invalidateDeals, invalidateClients } = useCRMStore.getState();
 
     const scrollToBottom = () => {
         setTimeout(() => {
@@ -145,6 +149,9 @@ export default function AIChatWidget() {
                 case "create_task":
                     endpoint = "/tasks/";
                     break;
+                case "create_deal":
+                    endpoint = "/deals/";
+                    break;
                 case "create_client":
                     endpoint = "/clients/";
                     break;
@@ -156,13 +163,18 @@ export default function AIChatWidget() {
                 }
             }
 
-            // Remove deal_id from payload for PATCH (it's in the URL)
+            // Clean payload: remove non-API keys
             const payload = { ...action.payload };
             if (action.action_type === "update_deal") {
                 delete payload.deal_id;
             }
 
             await api[method](endpoint, payload);
+
+            // Invalidate store → trigger auto-refresh on relevant page
+            if (action.action_type === "create_task") invalidateTasks();
+            else if (action.action_type === "create_deal" || action.action_type === "update_deal") invalidateDeals();
+            else if (action.action_type === "create_client") invalidateClients();
 
             addMessage({
                 role: "system",

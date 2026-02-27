@@ -76,7 +76,35 @@ class DealViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        serializer.save(manager=self.request.user)
+        client_name = self.request.data.get("client_name", "").strip()
+        client = None
+
+        if client_name:
+            # Try to find existing client by name (case-insensitive)
+            parts = client_name.split(maxsplit=1)
+            first = parts[0]
+            last = parts[1] if len(parts) > 1 else ""
+
+            client = Client.objects.filter(
+                first_name__icontains=first
+            ).first()
+
+            # If not found — create a new client record
+            if not client:
+                client = Client.objects.create(
+                    first_name=first,
+                    last_name=last,
+                )
+
+        # Fallback: if still no client, create a placeholder
+        if not client:
+            client = Client.objects.create(
+                first_name="Не указан",
+                last_name="",
+            )
+
+        serializer.validated_data.pop("client_name", None)
+        serializer.save(manager=self.request.user, client=client)
 
 
 # ───────────────────────────────────────

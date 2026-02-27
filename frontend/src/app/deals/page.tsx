@@ -25,6 +25,7 @@ import {
     TrendingUp,
     Mail,
     Phone,
+    Trash2,
 } from "lucide-react";
 import {
     DragDropContext,
@@ -35,6 +36,7 @@ import {
 import api from "@/lib/api";
 import { useCRMStore } from "@/lib/store";
 import type { Deal, DealStage, PaginatedResponse } from "@/types";
+import CreateDealModal from "@/components/CreateDealModal";
 
 /* ── Stage config ─────────────────────────── */
 
@@ -78,6 +80,8 @@ export default function DealsPage() {
     const [deals, setDeals] = useState<Deal[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const invalidateDeals = useCRMStore((s) => s.invalidateDeals);
 
     const fetchDeals = useCallback(async () => {
         setLoading(true);
@@ -110,6 +114,17 @@ export default function DealsPage() {
         } catch (err) {
             console.error("Failed to update stage:", err);
             fetchDeals();
+        }
+    };
+
+    const handleDelete = async (dealId: number, title: string) => {
+        if (!window.confirm(`Удалить сделку «${title}»?`)) return;
+        try {
+            await api.delete(`/deals/${dealId}/`);
+            setDeals((prev) => prev.filter((d) => d.id !== dealId));
+            invalidateDeals();
+        } catch (err) {
+            console.error("Failed to delete deal:", err);
         }
     };
 
@@ -150,7 +165,7 @@ export default function DealsPage() {
                     </div>
 
                     <button
-                        onClick={() => console.log("TODO: open add deal modal")}
+                        onClick={() => setShowCreateModal(true)}
                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all duration-200"
                     >
                         <Plus className="w-4 h-4" />
@@ -171,6 +186,7 @@ export default function DealsPage() {
                                 loading={loading}
                                 onStageChange={handleStageChange}
                                 onCardClick={setSelectedDeal}
+                                onDelete={handleDelete}
                             />
                         ))}
                     </div>
@@ -182,6 +198,16 @@ export default function DealsPage() {
                 <DealDetailModal
                     deal={selectedDeal}
                     onClose={() => setSelectedDeal(null)}
+                />
+            )}
+
+            {showCreateModal && (
+                <CreateDealModal
+                    onClose={() => setShowCreateModal(false)}
+                    onCreated={() => {
+                        fetchDeals();
+                        invalidateDeals();
+                    }}
                 />
             )}
         </div>
@@ -196,12 +222,14 @@ function KanbanColumn({
     loading,
     onStageChange,
     onCardClick,
+    onDelete,
 }: {
     stage: StageConfig;
     deals: Deal[];
     loading: boolean;
     onStageChange: (dealId: number, newStage: DealStage) => void;
     onCardClick: (deal: Deal) => void;
+    onDelete: (dealId: number, title: string) => void;
 }) {
     const stageTotal = deals.reduce((sum, d) => sum + parseFloat(d.amount || "0"), 0);
 
@@ -253,6 +281,7 @@ function KanbanColumn({
                                                 stageColor={stage.color}
                                                 onStageChange={onStageChange}
                                                 onClick={() => onCardClick(deal)}
+                                                onDelete={onDelete}
                                                 isDragging={dragSnapshot.isDragging}
                                             />
                                         </div>
@@ -274,12 +303,14 @@ function DealCard({
     stageColor,
     onStageChange,
     onClick,
+    onDelete,
     isDragging,
 }: {
     deal: Deal;
     stageColor: string;
     onStageChange: (dealId: number, newStage: DealStage) => void;
     onClick: () => void;
+    onDelete: (dealId: number, title: string) => void;
     isDragging: boolean;
 }) {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -313,6 +344,13 @@ function DealCard({
                 </h3>
                 <div className="relative" ref={menuRef}>
                     <button
+                        onClick={(e) => { e.stopPropagation(); onDelete(deal.id, deal.title); }}
+                        className="p-1 rounded-md text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100 mr-0.5"
+                        title="Удалить"
+                    >
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
                         onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
                         className="p-1 rounded-md text-slate-500 hover:text-white hover:bg-slate-700/60 transition-colors opacity-0 group-hover:opacity-100"
                         title="Сменить стадию"
@@ -338,8 +376,8 @@ function DealCard({
                                         setMenuOpen(false);
                                     }}
                                     className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition-colors ${s.key === deal.stage
-                                            ? "text-slate-600 cursor-default"
-                                            : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+                                        ? "text-slate-600 cursor-default"
+                                        : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
                                         }`}
                                 >
                                     <div className={`w-2 h-2 rounded-full ${s.dot}`} />

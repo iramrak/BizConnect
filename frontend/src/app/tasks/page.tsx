@@ -25,10 +25,12 @@ import {
     Handshake,
     User,
     Loader2,
+    Trash2,
 } from "lucide-react";
 import api from "@/lib/api";
 import { useCRMStore } from "@/lib/store";
 import type { Task, PaginatedResponse } from "@/types";
+import CreateTaskModal from "@/components/CreateTaskModal";
 
 /* ── Tabs ──────────────────────────────────── */
 
@@ -100,6 +102,8 @@ export default function TasksPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabKey>("all");
     const [togglingId, setTogglingId] = useState<number | null>(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const invalidateTasks = useCRMStore((s) => s.invalidateTasks);
 
     const fetchTasks = useCallback(async () => {
         setLoading(true);
@@ -142,6 +146,17 @@ export default function TasksPage() {
         }
     };
 
+    const handleDelete = async (taskId: number, taskTitle: string) => {
+        if (!window.confirm(`Удалить задачу «${taskTitle}»?`)) return;
+        try {
+            await api.delete(`/tasks/${taskId}/`);
+            setTasks((prev) => prev.filter((t) => t.id !== taskId));
+            invalidateTasks();
+        } catch (err) {
+            console.error("Failed to delete task:", err);
+        }
+    };
+
     const filtered = filterTasks(tasks, activeTab);
     const overdueCount = tasks.filter(isOverdue).length;
 
@@ -166,8 +181,8 @@ export default function TasksPage() {
                 </div>
 
                 <button
-                    onClick={() => console.log("TODO: open add task modal")}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all duration-200"
+                    onClick={() => setShowCreateModal(true)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all duration-200"
                 >
                     <Plus className="w-4 h-4" />
                     Новая задача
@@ -234,10 +249,21 @@ export default function TasksPage() {
                             task={task}
                             toggling={togglingId === task.id}
                             onToggle={toggleStatus}
+                            onDelete={handleDelete}
                         />
                     ))
                 )}
             </div>
+
+            {showCreateModal && (
+                <CreateTaskModal
+                    onClose={() => setShowCreateModal(false)}
+                    onCreated={() => {
+                        fetchTasks();
+                        invalidateTasks();
+                    }}
+                />
+            )}
         </div>
     );
 }
@@ -248,10 +274,12 @@ function TaskRow({
     task,
     toggling,
     onToggle,
+    onDelete,
 }: {
     task: Task;
     toggling: boolean;
     onToggle: (task: Task) => void;
+    onDelete: (taskId: number, title: string) => void;
 }) {
     const completed = task.status === "completed";
     const overdue = isOverdue(task);
@@ -336,6 +364,15 @@ function TaskRow({
                     {formatDate(task.deadline)}
                 </div>
             )}
+
+            {/* Delete */}
+            <button
+                onClick={() => onDelete(task.id, task.title)}
+                className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                title="Удалить задачу"
+            >
+                <Trash2 className="w-4 h-4" />
+            </button>
         </div>
     );
 }

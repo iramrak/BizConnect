@@ -11,8 +11,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Search, Plus, Users, Phone, Mail, Building2, Loader2 } from "lucide-react";
+import { Search, Plus, Users, Phone, Mail, Building2, Loader2, Trash2 } from "lucide-react";
 import api from "@/lib/api";
+import { useCRMStore } from "@/lib/store";
 import type { Client, PaginatedResponse } from "@/types";
 
 export default function ClientsPage() {
@@ -20,6 +21,19 @@ export default function ClientsPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [totalCount, setTotalCount] = useState(0);
+    const invalidateClients = useCRMStore((s) => s.invalidateClients);
+
+    const handleDelete = async (id: number, name: string) => {
+        if (!window.confirm(`Удалить клиента «${name}»?`)) return;
+        try {
+            await api.delete(`/clients/${id}/`);
+            setClients((prev) => prev.filter((c) => c.id !== id));
+            setTotalCount((prev) => prev - 1);
+            invalidateClients();
+        } catch (err) {
+            console.error("Failed to delete client:", err);
+        }
+    };
 
     const fetchClients = useCallback(async (query: string) => {
         setLoading(true);
@@ -124,6 +138,7 @@ export default function ClientsPage() {
                                 <th className="text-left py-3.5 px-5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                                     Добавлен
                                 </th>
+                                <th className="w-12" />
                             </tr>
                         </thead>
 
@@ -135,7 +150,7 @@ export default function ClientsPage() {
                                 : clients.length === 0
                                     ? (
                                         <tr>
-                                            <td colSpan={5} className="text-center py-16 text-slate-500">
+                                            <td colSpan={6} className="text-center py-16 text-slate-500">
                                                 <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
                                                 {search
                                                     ? "Клиенты не найдены. Попробуйте другой запрос."
@@ -146,7 +161,7 @@ export default function ClientsPage() {
                                     : clients.map((client) => (
                                         <tr
                                             key={client.id}
-                                            className="hover:bg-slate-700/20 transition-colors cursor-pointer"
+                                            className="hover:bg-slate-700/20 transition-colors cursor-pointer group"
                                         >
                                             <td className="py-3.5 px-5">
                                                 <div className="flex items-center gap-3">
@@ -186,6 +201,21 @@ export default function ClientsPage() {
                                             </td>
                                             <td className="py-3.5 px-5 text-slate-500 text-xs">
                                                 {formatDate(client.created_at)}
+                                            </td>
+                                            <td className="py-3.5 px-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDelete(
+                                                            client.id,
+                                                            `${client.first_name} ${client.last_name}`.trim()
+                                                        );
+                                                    }}
+                                                    className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100"
+                                                    title="Удалить клиента"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}

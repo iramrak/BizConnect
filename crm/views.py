@@ -6,7 +6,10 @@ RBAC logic:
 - Manager       → only their own Deals (manager=user) and Tasks (creator=user).
 """
 
+from django.db.models import Count, Sum
+from django.utils import timezone
 from rest_framework import status, viewsets
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -77,6 +80,8 @@ class DealViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         client_name = self.request.data.get("client_name", "").strip()
+        client_phone = serializer.validated_data.pop("client_phone", None) or ""
+        client_phone = client_phone.strip()
         client = None
 
         if client_name:
@@ -94,13 +99,19 @@ class DealViewSet(viewsets.ModelViewSet):
                 client = Client.objects.create(
                     first_name=first,
                     last_name=last,
+                    phone=client_phone,
                 )
+            elif client_phone and not client.phone:
+                # Update phone if client exists but has no phone
+                client.phone = client_phone
+                client.save(update_fields=["phone"])
 
         # Fallback: if still no client, create a placeholder
         if not client:
             client = Client.objects.create(
                 first_name="Не указан",
                 last_name="",
+                phone=client_phone,
             )
 
         serializer.validated_data.pop("client_name", None)
@@ -181,3 +192,72 @@ class AIChatView(APIView):
         )
 
         return Response(result, status=status.HTTP_200_OK)
+
+
+# ───────────────────────────────────────
+# Dashboard  (aggregated stats)
+# ───────────────────────────────────────
+
+STAGE_LABELS = {
+    "new": "Новый",
+    "in_progress": "В работе",
+    "proposal": "КП",
+    "negotiation": "Согласование",
+    "payment": "Оплата",
+    "closed_won": "Успех",
+    "closed_lost": "Провал",
+}
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def dashboard_view(request):
+    """
+    GET /api/dashboard/
+    Returns aggregated CRM statistics for the dashboard page.
+    """
+
+    # ── Deals ───────────────────────────
+    total_deals = Deal.objects.count()
+    total_revenue = (
+        Deal.objects.aggregate(total=Sum("amount"))["total"] or 0
+    )
+
+    # Deals by stage
+    stage_counts = (
+        Deal.objects.values("stage")
+        .annotate(count=Count("id"))
+        .order_by("stage")
+    )
+    deals_by_stage = [
+        {
+            "name": STAGE_LABELS.get(row["stage"], row["stage"]),
+            "key": row["stage"],
+            "value": row["count"],
+        }
+        for row in stage_counts
+    ]
+
+    # ── Clients ─────────────────────────
+    total_clients = Client.objects.count()
+
+    # ── Tasks ───────────────────────────
+    active_tasks = Task.objects.exclude(status="completed").count()
+    completed_tasks = Task.objects.filter(status="completed").count()
+    overdue_tasks = Task.objects.exclude(status="completed").filter(
+        deadline__lt=timezone.now()
+    ).count()
+
+    return Response(
+        {
+            "total_deals": total_deals,
+            "total_revenue": float(total_revenue),
+            "deals_by_stage": deals_by_stage,
+            "total_clients": total_clients,
+            "active_tasks": active_tasks,
+            "completed_tasks": completed_tasks,
+            "overdue_tasks": overdue_tasks,
+        },
+        status=status.HTTP_200_OK,
+    )
+

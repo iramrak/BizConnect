@@ -14,6 +14,7 @@ from .views import (
     DealViewSet,
     TaskViewSet,
     UserViewSet,
+    dashboard_view,
 )
 
 router = DefaultRouter()
@@ -26,4 +27,5 @@ router.register(r"action-logs", ActionLogViewSet, basename="actionlog")
 urlpatterns = [
     path("", include(router.urls)),
     path("ai/chat/", AIChatView.as_view(), name="ai-chat"),
+    path("dashboard/", dashboard_view, name="dashboard"),
 ]

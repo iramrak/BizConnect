@@ -95,6 +95,10 @@ class DealSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(
         write_only=True, required=False, allow_blank=True
     )
+    # Virtual field: optional phone for the client
+    client_phone = serializers.CharField(
+        write_only=True, required=False, allow_blank=True
+    )
 
     class Meta:
         model = Deal
@@ -103,6 +107,7 @@ class DealSerializer(serializers.ModelSerializer):
             "title",
             "client",
             "client_name",
+            "client_phone",
             "amount",
             "currency",
             "currency_display",

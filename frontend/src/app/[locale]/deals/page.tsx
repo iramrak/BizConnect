@@ -33,6 +33,7 @@ import {
     Draggable,
     type DropResult,
 } from "@hello-pangea/dnd";
+import { useTranslations, useLocale } from "next-intl";
 import api from "@/lib/api";
 import { useCRMStore } from "@/lib/store";
 import type { Deal, DealStage, PaginatedResponse } from "@/types";
@@ -42,7 +43,7 @@ import CreateDealModal from "@/components/CreateDealModal";
 
 interface StageConfig {
     key: DealStage;
-    label: string;
+    labelKey: string;
     color: string;
     colorTo: string;
     bg: string;
@@ -50,13 +51,13 @@ interface StageConfig {
 }
 
 const STAGES: StageConfig[] = [
-    { key: "new", label: "Новый", color: "from-sky-500", colorTo: "to-sky-600", bg: "bg-sky-500/5", dot: "bg-sky-400" },
-    { key: "in_progress", label: "В работе", color: "from-amber-500", colorTo: "to-amber-600", bg: "bg-amber-500/5", dot: "bg-amber-400" },
-    { key: "proposal", label: "КП", color: "from-violet-500", colorTo: "to-violet-600", bg: "bg-violet-500/5", dot: "bg-violet-400" },
-    { key: "negotiation", label: "Согласование", color: "from-orange-500", colorTo: "to-orange-600", bg: "bg-orange-500/5", dot: "bg-orange-400" },
-    { key: "payment", label: "Оплата", color: "from-blue-500", colorTo: "to-blue-600", bg: "bg-blue-500/5", dot: "bg-blue-400" },
-    { key: "closed_won", label: "Успех", color: "from-emerald-500", colorTo: "to-emerald-600", bg: "bg-emerald-500/5", dot: "bg-emerald-400" },
-    { key: "closed_lost", label: "Провал", color: "from-red-500", colorTo: "to-red-600", bg: "bg-red-500/5", dot: "bg-red-400" },
+    { key: "new", labelKey: "stages.new", color: "from-sky-500", colorTo: "to-sky-600", bg: "bg-sky-500/5", dot: "bg-sky-400" },
+    { key: "in_progress", labelKey: "stages.in_progress", color: "from-amber-500", colorTo: "to-amber-600", bg: "bg-amber-500/5", dot: "bg-amber-400" },
+    { key: "proposal", labelKey: "stages.proposal", color: "from-violet-500", colorTo: "to-violet-600", bg: "bg-violet-500/5", dot: "bg-violet-400" },
+    { key: "negotiation", labelKey: "stages.negotiation", color: "from-orange-500", colorTo: "to-orange-600", bg: "bg-orange-500/5", dot: "bg-orange-400" },
+    { key: "payment", labelKey: "stages.payment", color: "from-blue-500", colorTo: "to-blue-600", bg: "bg-blue-500/5", dot: "bg-blue-400" },
+    { key: "closed_won", labelKey: "stages.closed_won", color: "from-emerald-500", colorTo: "to-emerald-600", bg: "bg-emerald-500/5", dot: "bg-emerald-400" },
+    { key: "closed_lost", labelKey: "stages.closed_lost", color: "from-red-500", colorTo: "to-red-600", bg: "bg-red-500/5", dot: "bg-red-400" },
 ];
 
 const STAGE_MAP = Object.fromEntries(STAGES.map((s) => [s.key, s]));
@@ -77,6 +78,9 @@ function groupByStage(deals: Deal[]): GroupedDeals {
 /* ── Page ──────────────────────────────────── */
 
 export default function DealsPage() {
+    const t = useTranslations("Deals");
+    const tCommon = useTranslations("Common");
+    const locale = useLocale();
     const [deals, setDeals] = useState<Deal[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
@@ -118,7 +122,7 @@ export default function DealsPage() {
     };
 
     const handleDelete = async (dealId: number, title: string) => {
-        if (!window.confirm(`Удалить сделку «${title}»?`)) return;
+        if (!window.confirm(t("deleteDeal", { title }))) return;
         try {
             await api.delete(`/deals/${dealId}/`);
             setDeals((prev) => prev.filter((d) => d.id !== dealId));
@@ -144,6 +148,7 @@ export default function DealsPage() {
 
     const grouped = groupByStage(deals);
     const totalAmount = deals.reduce((sum, d) => sum + parseFloat(d.amount || "0"), 0);
+    const stageLabel = (s: StageConfig) => t(s.labelKey);
 
     return (
         <div className="h-full flex flex-col">
@@ -155,12 +160,12 @@ export default function DealsPage() {
                             <div className="p-2 rounded-xl bg-indigo-500/10">
                                 <Handshake className="w-6 h-6 text-indigo-400" />
                             </div>
-                            Сделки
+                            {t("title")}
                         </h1>
                         <p className="text-slate-400 mt-1 text-sm">
                             {loading
-                                ? "Загрузка…"
-                                : `${deals.length} сделок · ${formatMoney(totalAmount)} в воронке`}
+                                ? tCommon("loading")
+                                : t("dealsInPipeline", { count: deals.length, amount: formatMoney(totalAmount, locale) })}
                         </p>
                     </div>
 
@@ -169,7 +174,7 @@ export default function DealsPage() {
                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all duration-200"
                     >
                         <Plus className="w-4 h-4" />
-                        Новая сделка
+                        {t("newDeal")}
                     </button>
                 </div>
             </div>
@@ -231,6 +236,8 @@ function KanbanColumn({
     onCardClick: (deal: Deal) => void;
     onDelete: (dealId: number, title: string) => void;
 }) {
+    const t = useTranslations("Deals");
+    const locale = useLocale();
     const stageTotal = deals.reduce((sum, d) => sum + parseFloat(d.amount || "0"), 0);
 
     return (
@@ -240,7 +247,7 @@ function KanbanColumn({
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                         <div className={`w-2.5 h-2.5 rounded-full ${stage.dot}`} />
-                        <span className="text-sm font-semibold text-white">{stage.label}</span>
+                        <span className="text-sm font-semibold text-white">{t(stage.labelKey)}</span>
                         <span className="text-xs text-slate-500 bg-slate-700/50 px-2 py-0.5 rounded-full">
                             {deals.length}
                         </span>
@@ -248,7 +255,7 @@ function KanbanColumn({
                 </div>
                 {deals.length > 0 && (
                     <p className="text-xs text-slate-500 mt-1 ml-5">
-                        {formatMoney(stageTotal)}
+                        {formatMoney(stageTotal, locale)}
                     </p>
                 )}
             </div>
@@ -313,6 +320,9 @@ function DealCard({
     onDelete: (dealId: number, title: string) => void;
     isDragging: boolean;
 }) {
+    const t = useTranslations("Deals");
+    const tCommon = useTranslations("Common");
+    const locale = useLocale();
     const [menuOpen, setMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -346,14 +356,14 @@ function DealCard({
                     <button
                         onClick={(e) => { e.stopPropagation(); onDelete(deal.id, deal.title); }}
                         className="p-1 rounded-md text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100 mr-0.5"
-                        title="Удалить"
+                        title={tCommon("delete")}
                     >
                         <Trash2 className="w-3.5 h-3.5" />
                     </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); setMenuOpen(!menuOpen); }}
                         className="p-1 rounded-md text-slate-500 hover:text-white hover:bg-slate-700/60 transition-colors opacity-0 group-hover:opacity-100"
-                        title="Сменить стадию"
+                        title={t("changeStage")}
                     >
                         <ChevronDown className="w-3.5 h-3.5" />
                     </button>
@@ -361,8 +371,8 @@ function DealCard({
                     {menuOpen && (
                         <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl shadow-black/40 py-1.5 animate-in fade-in slide-in-from-top-1 duration-150">
                             <div className="px-3 py-1.5 flex items-center justify-between border-b border-slate-700/50 mb-1">
-                                <span className="text-xs text-slate-400 font-medium">Сменить стадию</span>
-                                <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} className="text-slate-500 hover:text-white" title="Закрыть">
+                                <span className="text-xs text-slate-400 font-medium">{t("changeStage")}</span>
+                                <button onClick={(e) => { e.stopPropagation(); setMenuOpen(false); }} className="text-slate-500 hover:text-white" title={tCommon("close")}>
                                     <X className="w-3 h-3" />
                                 </button>
                             </div>
@@ -381,7 +391,7 @@ function DealCard({
                                         }`}
                                 >
                                     <div className={`w-2 h-2 rounded-full ${s.dot}`} />
-                                    {s.label}
+                                    {t(s.labelKey)}
                                     {s.key === deal.stage && (
                                         <span className="ml-auto text-slate-600">✓</span>
                                     )}
@@ -403,7 +413,7 @@ function DealCard({
                 <div className="flex items-center gap-1">
                     <DollarSign className="w-3 h-3 text-emerald-400" />
                     <span className="text-sm font-semibold text-emerald-400">
-                        {formatMoney(parseFloat(deal.amount || "0"))}
+                        {formatMoney(parseFloat(deal.amount || "0"), locale)}
                     </span>
                     <span className="text-xs text-slate-500 ml-0.5">{deal.currency}</span>
                 </div>
@@ -411,7 +421,7 @@ function DealCard({
                 {deal.expected_close_date && (
                     <div className="flex items-center gap-1 text-xs text-slate-500">
                         <CalendarDays className="w-3 h-3" />
-                        {formatShortDate(deal.expected_close_date)}
+                        {formatShortDate(deal.expected_close_date, locale)}
                     </div>
                 )}
             </div>
@@ -420,7 +430,7 @@ function DealCard({
             {deal.probability > 0 && (
                 <div className="mt-2.5">
                     <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] text-slate-500">Вероятность</span>
+                        <span className="text-[10px] text-slate-500">{t("probability")}</span>
                         <span className="text-[10px] text-slate-400 font-medium">{deal.probability}%</span>
                     </div>
                     <div className="w-full h-1 bg-slate-700/50 rounded-full overflow-hidden">
@@ -444,6 +454,9 @@ function DealDetailModal({
     deal: Deal;
     onClose: () => void;
 }) {
+    const t = useTranslations("Deals");
+    const tCommon = useTranslations("Common");
+    const locale = useLocale();
     const stageConfig = STAGE_MAP[deal.stage];
     const clientName = deal.client
         ? `${deal.client.first_name} ${deal.client.last_name}`.trim()
@@ -476,7 +489,7 @@ function DealDetailModal({
                     <button
                         onClick={onClose}
                         className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors shrink-0"
-                        title="Закрыть"
+                        title={tCommon("close")}
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -487,7 +500,7 @@ function DealDetailModal({
                     <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${stageConfig?.dot ?? "bg-slate-500"}`} />
                         <span className="text-sm font-medium text-white">
-                            {stageConfig?.label ?? deal.stage}
+                            {stageConfig ? t(stageConfig.labelKey) : deal.stage}
                         </span>
                         {deal.probability > 0 && (
                             <span className="ml-auto text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-lg">
@@ -499,10 +512,10 @@ function DealDetailModal({
 
                     {/* Amount */}
                     <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4">
-                        <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">Бюджет</p>
+                        <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{t("detail.budget")}</p>
                         <div className="flex items-baseline gap-2">
                             <span className="text-2xl font-bold text-emerald-400">
-                                {formatMoney(parseFloat(deal.amount || "0"))}
+                                {formatMoney(parseFloat(deal.amount || "0"), locale)}
                             </span>
                             <span className="text-sm text-slate-400">{deal.currency_display || deal.currency}</span>
                         </div>
@@ -512,38 +525,38 @@ function DealDetailModal({
                     <div className="space-y-3">
                         <DetailRow
                             icon={User}
-                            label="Клиент"
+                            label={t("detail.client")}
                             value={clientName}
                         />
                         {deal.client?.phone && (
                             <DetailRow
                                 icon={Phone}
-                                label="Телефон"
+                                label={t("detail.phone")}
                                 value={deal.client.phone}
                             />
                         )}
                         <DetailRow
                             icon={Building2}
-                            label="Менеджер"
+                            label={t("detail.manager")}
                             value={deal.manager?.full_name ?? "—"}
                         />
                         {deal.expected_close_date && (
                             <DetailRow
                                 icon={CalendarDays}
-                                label="Ожидаемое закрытие"
-                                value={formatDate(deal.expected_close_date)}
+                                label={t("detail.expectedClose")}
+                                value={formatDate(deal.expected_close_date, locale)}
                             />
                         )}
                         <DetailRow
                             icon={Clock}
-                            label="Создана"
-                            value={formatDate(deal.created_at)}
+                            label={t("detail.created")}
+                            value={formatDate(deal.created_at, locale)}
                         />
                         {deal.updated_at && (
                             <DetailRow
                                 icon={Clock}
-                                label="Обновлена"
-                                value={formatDate(deal.updated_at)}
+                                label={t("detail.updated")}
+                                value={formatDate(deal.updated_at, locale)}
                             />
                         )}
                     </div>
@@ -592,22 +605,22 @@ function SkeletonCard() {
 
 /* ── Helpers ───────────────────────────────── */
 
-function formatMoney(value: number): string {
-    return new Intl.NumberFormat("ru-RU", {
+function formatMoney(value: number, locale: string = "ru"): string {
+    return new Intl.NumberFormat(locale, {
         style: "decimal",
         maximumFractionDigits: 0,
     }).format(value);
 }
 
-function formatShortDate(iso: string): string {
-    return new Date(iso).toLocaleDateString("ru-RU", {
+function formatShortDate(iso: string, locale: string = "ru"): string {
+    return new Date(iso).toLocaleDateString(locale, {
         day: "numeric",
         month: "short",
     });
 }
 
-function formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString("ru-RU", {
+function formatDate(iso: string, locale: string = "ru"): string {
+    return new Date(iso).toLocaleDateString(locale, {
         day: "numeric",
         month: "long",
         year: "numeric",

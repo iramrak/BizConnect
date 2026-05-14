@@ -10,6 +10,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Loader2, ListTodo } from "lucide-react";
+import { useTranslations } from "next-intl";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import api from "@/lib/api";
@@ -20,6 +21,8 @@ interface Props {
 }
 
 export default function CreateTaskModal({ onClose, onCreated }: Props) {
+    const t = useTranslations("CreateTask");
+    const tCommon = useTranslations("Common");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -40,11 +43,11 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim()) {
-            setError("Заголовок задачи обязателен");
+            setError(t("titleRequired"));
             return;
         }
         if (!deadline) {
-            setError("Укажите дедлайн");
+            setError(t("deadlineRequired"));
             return;
         }
 
@@ -62,7 +65,7 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
             onClose();
         } catch (err: unknown) {
             console.error("Failed to create task:", err);
-            setError("Не удалось создать задачу");
+            setError(t("createError"));
         } finally {
             setLoading(false);
         }
@@ -93,13 +96,13 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                                 <ListTodo className="w-5 h-5 text-emerald-400" />
                             </div>
                             <h2 className="text-lg font-semibold text-white">
-                                Новая задача
+                                {t("title")}
                             </h2>
                         </div>
                         <button
                             onClick={onClose}
                             className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors"
-                            title="Закрыть"
+                            title={tCommon("close")}
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -110,11 +113,11 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                         {/* Title */}
                         <div>
                             <label className={labelCls}>
-                                Заголовок <span className="text-red-400">*</span>
+                                {t("taskTitle")} <span className="text-red-400">*</span>
                             </label>
                             <input
                                 type="text"
-                                placeholder="Например: Позвонить Ивану"
+                                placeholder={t("taskTitlePlaceholder")}
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 className={inputCls}
@@ -124,9 +127,9 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
 
                         {/* Description */}
                         <div>
-                            <label className={labelCls}>Описание</label>
+                            <label className={labelCls}>{t("description")}</label>
                             <textarea
-                                placeholder="Дополнительная информация…"
+                                placeholder={t("descriptionPlaceholder")}
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={3}
@@ -137,21 +140,21 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                         {/* Type + Deadline */}
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className={labelCls}>Тип задачи</label>
+                                <label className={labelCls}>{t("taskType")}</label>
                                 <select
                                     value={taskType}
                                     onChange={(e) => setTaskType(e.target.value)}
                                     className={inputCls}
-                                    title="Тип задачи"
+                                    title={t("taskType")}
                                 >
-                                    <option value="call">📞 Звонок</option>
-                                    <option value="meeting">📅 Встреча</option>
-                                    <option value="email">📧 Письмо</option>
+                                    <option value="call">📞 {t("types.call")}</option>
+                                    <option value="meeting">📅 {t("types.meeting")}</option>
+                                    <option value="email">📧 {t("types.email")}</option>
                                 </select>
                             </div>
                             <div>
                                 <label className={labelCls}>
-                                    Дедлайн <span className="text-red-400">*</span>
+                                    {t("deadline")} <span className="text-red-400">*</span>
                                 </label>
                                 <DatePicker
                                     selected={deadline}
@@ -160,7 +163,7 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                                     timeFormat="HH:mm"
                                     timeIntervals={15}
                                     dateFormat="Pp"
-                                    placeholderText="Выберите дату и время"
+                                    placeholderText={t("deadlinePlaceholder")}
                                     className={inputCls}
                                     wrapperClassName="w-full"
                                     calendarClassName="crm-datepicker"
@@ -182,7 +185,7 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                                 onClick={onClose}
                                 className="px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700/60 border border-slate-700/50 rounded-xl transition-all"
                             >
-                                Отмена
+                                {tCommon("cancel")}
                             </button>
                             <button
                                 type="submit"
@@ -190,7 +193,7 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                                Создать задачу
+                                {t("submit")}
                             </button>
                         </div>
                     </form>

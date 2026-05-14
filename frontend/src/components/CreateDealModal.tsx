@@ -9,6 +9,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Loader2, Handshake } from "lucide-react";
+import { useTranslations } from "next-intl";
 import api from "@/lib/api";
 
 interface Props {
@@ -17,6 +18,8 @@ interface Props {
 }
 
 export default function CreateDealModal({ onClose, onCreated }: Props) {
+    const t = useTranslations("CreateDeal");
+    const tCommon = useTranslations("Common");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -39,7 +42,7 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!title.trim()) {
-            setError("Название сделки обязательно");
+            setError(t("titleRequired"));
             return;
         }
 
@@ -59,7 +62,7 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
             onClose();
         } catch (err: unknown) {
             console.error("Failed to create deal:", err);
-            setError("Не удалось создать сделку");
+            setError(t("createError"));
         } finally {
             setLoading(false);
         }
@@ -90,13 +93,13 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                                 <Handshake className="w-5 h-5 text-indigo-400" />
                             </div>
                             <h2 className="text-lg font-semibold text-white">
-                                Новая сделка
+                                {t("title")}
                             </h2>
                         </div>
                         <button
                             onClick={onClose}
                             className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/60 transition-colors"
-                            title="Закрыть"
+                            title={tCommon("close")}
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -107,11 +110,11 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                         {/* Title */}
                         <div>
                             <label className={labelCls}>
-                                Название сделки <span className="text-red-400">*</span>
+                                {t("dealTitle")} <span className="text-red-400">*</span>
                             </label>
                             <input
                                 type="text"
-                                placeholder="Например: Поставка оборудования"
+                                placeholder={t("dealTitlePlaceholder")}
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 className={inputCls}
@@ -122,20 +125,20 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                         {/* Client Name + Phone */}
                         <div className="grid grid-cols-2 gap-3">
                             <div>
-                                <label className={labelCls}>Имя клиента</label>
+                                <label className={labelCls}>{t("clientName")}</label>
                                 <input
                                     type="text"
-                                    placeholder="Иван Петров"
+                                    placeholder={t("clientNamePlaceholder")}
                                     value={clientName}
                                     onChange={(e) => setClientName(e.target.value)}
                                     className={inputCls}
                                 />
                             </div>
                             <div>
-                                <label className={labelCls}>Телефон клиента</label>
+                                <label className={labelCls}>{t("clientPhone")}</label>
                                 <input
                                     type="tel"
-                                    placeholder="+7 (777) 123-45-67"
+                                    placeholder={t("clientPhonePlaceholder")}
                                     value={clientPhone}
                                     onChange={(e) => setClientPhone(e.target.value)}
                                     className={inputCls}
@@ -146,7 +149,7 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                         {/* Amount + Currency */}
                         <div className="grid grid-cols-3 gap-3">
                             <div className="col-span-2">
-                                <label className={labelCls}>Сумма</label>
+                                <label className={labelCls}>{t("amount")}</label>
                                 <input
                                     type="number"
                                     min="0"
@@ -158,17 +161,17 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                                 />
                             </div>
                             <div>
-                                <label className={labelCls}>Валюта</label>
+                                <label className={labelCls}>{t("currency")}</label>
                                 <select
                                     value={currency}
                                     onChange={(e) => setCurrency(e.target.value)}
                                     className={inputCls}
-                                    title="Валюта"
+                                    title={t("currency")}
                                 >
-                                    <option value="KZT">₸ Тенге</option>
-                                    <option value="RUB">₽ Рубль</option>
-                                    <option value="USD">$ Доллар</option>
-                                    <option value="EUR">€ Евро</option>
+                                    <option value="KZT">{t("currencies.KZT")}</option>
+                                    <option value="RUB">{t("currencies.RUB")}</option>
+                                    <option value="USD">{t("currencies.USD")}</option>
+                                    <option value="EUR">{t("currencies.EUR")}</option>
                                 </select>
                             </div>
                         </div>
@@ -176,14 +179,14 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                         {/* Expected Close Date */}
                         <div>
                             <label className={labelCls}>
-                                Ожидаемая дата закрытия
+                                {t("expectedCloseDate")}
                             </label>
                             <input
                                 type="date"
                                 value={expectedCloseDate}
                                 onChange={(e) => setExpectedCloseDate(e.target.value)}
                                 className={inputCls}
-                                title="Ожидаемая дата закрытия"
+                                title={t("expectedCloseDate")}
                             />
                         </div>
 
@@ -201,7 +204,7 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                                 onClick={onClose}
                                 className="px-4 py-2.5 text-sm font-medium text-slate-300 hover:text-white bg-slate-800/50 hover:bg-slate-700/60 border border-slate-700/50 rounded-xl transition-all"
                             >
-                                Отмена
+                                {tCommon("cancel")}
                             </button>
                             <button
                                 type="submit"
@@ -209,7 +212,7 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                                Создать сделку
+                                {t("submit")}
                             </button>
                         </div>
                     </form>

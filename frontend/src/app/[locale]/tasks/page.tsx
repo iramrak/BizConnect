@@ -27,6 +27,7 @@ import {
     Loader2,
     Trash2,
 } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
 import api from "@/lib/api";
 import { useCRMStore } from "@/lib/store";
 import type { Task, PaginatedResponse } from "@/types";
@@ -36,19 +37,21 @@ import CreateTaskModal from "@/components/CreateTaskModal";
 
 type TabKey = "all" | "today" | "overdue" | "completed";
 
-interface TabDef {
-    key: TabKey;
-    label: string;
-    icon: React.ElementType;
-    color: string;
-}
+const TAB_KEYS: TabKey[] = ["all", "today", "overdue", "completed"];
 
-const TABS: TabDef[] = [
-    { key: "all", label: "Все", icon: ListTodo, color: "text-blue-400" },
-    { key: "today", label: "На сегодня", icon: CalendarDays, color: "text-amber-400" },
-    { key: "overdue", label: "Просроченные", icon: AlertTriangle, color: "text-red-400" },
-    { key: "completed", label: "Выполненные", icon: CheckCircle2, color: "text-emerald-400" },
-];
+const TAB_ICONS: Record<TabKey, React.ElementType> = {
+    all: ListTodo,
+    today: CalendarDays,
+    overdue: AlertTriangle,
+    completed: CheckCircle2,
+};
+
+const TAB_COLORS: Record<TabKey, string> = {
+    all: "text-blue-400",
+    today: "text-amber-400",
+    overdue: "text-red-400",
+    completed: "text-emerald-400",
+};
 
 /* ── Task type config ─────────────────────── */
 
@@ -74,8 +77,8 @@ function isToday(task: Task): boolean {
     return task.deadline.slice(0, 10) === todayStr();
 }
 
-function formatDate(iso: string): string {
-    return new Date(iso).toLocaleDateString("ru-RU", {
+function formatDate(iso: string, locale: string = "ru"): string {
+    return new Date(iso).toLocaleDateString(locale, {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -98,6 +101,9 @@ function filterTasks(tasks: Task[], tab: TabKey): Task[] {
 /* ── Page ──────────────────────────────────── */
 
 export default function TasksPage() {
+    const t = useTranslations("Tasks");
+    const tCommon = useTranslations("Common");
+    const locale = useLocale();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabKey>("all");
@@ -147,7 +153,7 @@ export default function TasksPage() {
     };
 
     const handleDelete = async (taskId: number, taskTitle: string) => {
-        if (!window.confirm(`Удалить задачу «${taskTitle}»?`)) return;
+        if (!window.confirm(t("deleteTask", { title: taskTitle }))) return;
         try {
             await api.delete(`/tasks/${taskId}/`);
             setTasks((prev) => prev.filter((t) => t.id !== taskId));
@@ -169,14 +175,14 @@ export default function TasksPage() {
                         <div className="p-2 rounded-xl bg-emerald-500/10">
                             <ListTodo className="w-6 h-6 text-emerald-400" />
                         </div>
-                        Задачи
+                        {t("title")}
                     </h1>
                     <p className="text-slate-400 mt-1 text-sm">
                         {loading
-                            ? "Загрузка…"
+                            ? tCommon("loading")
                             : overdueCount > 0
-                                ? `${tasks.length} задач · ${overdueCount} просрочено`
-                                : `${tasks.length} задач`}
+                                ? t("taskCountOverdue", { count: tasks.length, overdue: overdueCount })
+                                : t("taskCount", { count: tasks.length })}
                     </p>
                 </div>
 
@@ -185,35 +191,37 @@ export default function TasksPage() {
                     className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-medium rounded-xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all duration-200"
                 >
                     <Plus className="w-4 h-4" />
-                    Новая задача
+                    {t("newTask")}
                 </button>
             </div>
 
             {/* ── Tabs ───────────────────────────── */}
             <div className="flex gap-1 bg-slate-800/40 border border-slate-700/40 p-1 rounded-xl mb-6 overflow-x-auto">
-                {TABS.map((tab) => {
+                {TAB_KEYS.map((tabKey) => {
+                    const TabIcon = TAB_ICONS[tabKey];
+                    const tabColor = TAB_COLORS[tabKey];
                     const count =
-                        tab.key === "all"
+                        tabKey === "all"
                             ? tasks.length
-                            : tab.key === "today"
-                                ? tasks.filter((t) => t.status === "open" && isToday(t)).length
-                                : tab.key === "overdue"
+                            : tabKey === "today"
+                                ? tasks.filter((tt) => tt.status === "open" && isToday(tt)).length
+                                : tabKey === "overdue"
                                     ? overdueCount
-                                    : tasks.filter((t) => t.status === "completed").length;
+                                    : tasks.filter((tt) => tt.status === "completed").length;
 
-                    const isActive = activeTab === tab.key;
+                    const isActive = activeTab === tabKey;
 
                     return (
                         <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
+                            key={tabKey}
+                            onClick={() => setActiveTab(tabKey)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${isActive
                                 ? "bg-slate-700/70 text-white shadow-sm"
                                 : "text-slate-400 hover:text-white hover:bg-slate-700/30"
                                 }`}
                         >
-                            <tab.icon className={`w-4 h-4 ${isActive ? tab.color : ""}`} />
-                            {tab.label}
+                            <TabIcon className={`w-4 h-4 ${isActive ? tabColor : ""}`} />
+                            {t(`tabs.${tabKey}`)}
                             <span
                                 className={`text-xs px-1.5 py-0.5 rounded-full ${isActive
                                     ? "bg-slate-600/60 text-slate-200"
@@ -235,12 +243,12 @@ export default function TasksPage() {
                     <div className="text-center py-16 text-slate-500">
                         <ListTodo className="w-10 h-10 mx-auto mb-3 opacity-30" />
                         {activeTab === "all"
-                            ? "Нет задач. Создайте первую!"
+                            ? t("empty.all")
                             : activeTab === "today"
-                                ? "На сегодня задач нет 🎉"
+                                ? t("empty.today")
                                 : activeTab === "overdue"
-                                    ? "Просроченных задач нет 👍"
-                                    : "Выполненных задач пока нет"}
+                                    ? t("empty.overdue")
+                                    : t("empty.completed")}
                     </div>
                 ) : (
                     filtered.map((task) => (
@@ -281,6 +289,8 @@ function TaskRow({
     onToggle: (task: Task) => void;
     onDelete: (taskId: number, title: string) => void;
 }) {
+    const tCommon = useTranslations("Common");
+    const locale = useLocale();
     const completed = task.status === "completed";
     const overdue = isOverdue(task);
 
@@ -361,7 +371,7 @@ function TaskRow({
                     ) : (
                         <Clock className="w-3.5 h-3.5" />
                     )}
-                    {formatDate(task.deadline)}
+                    {formatDate(task.deadline, locale)}
                 </div>
             )}
 
@@ -369,7 +379,7 @@ function TaskRow({
             <button
                 onClick={() => onDelete(task.id, task.title)}
                 className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
-                title="Удалить задачу"
+                title={tCommon("delete")}
             >
                 <Trash2 className="w-4 h-4" />
             </button>

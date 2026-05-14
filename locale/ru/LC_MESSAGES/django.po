@@ -1,0 +1,253 @@
+# CleanDerect CRM — Russian translations (default language)
+# This file maps source strings to themselves since RU is the source language.
+# Required by Django's translation framework for completeness.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CleanDerect CRM 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-12 23:30+0500\n"
+"PO-Revision-Date: 2026-05-12 23:30+0500\n"
+"Last-Translator: CleanDerect Dev Team\n"
+"Language: ru\n"
+"Language-Team: Russian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || (n%100>=11 && n%100<=14) ? 2 : 3);\n"
+
+#
+# ── User model ──────────────────────────────
+#
+
+#: crm/models.py — User.Role choices
+msgid "Администратор"
+msgstr "Администратор"
+
+msgid "Менеджер"
+msgstr "Менеджер"
+
+msgid "Руководитель"
+msgstr "Руководитель"
+
+#: crm/models.py — User fields
+msgid "Email"
+msgstr "Email"
+
+msgid "Имя"
+msgstr "Имя"
+
+msgid "Фамилия"
+msgstr "Фамилия"
+
+msgid "Роль"
+msgstr "Роль"
+
+msgid "Активен"
+msgstr "Активен"
+
+msgid "Доступ к админке"
+msgstr "Доступ к админке"
+
+msgid "Дата регистрации"
+msgstr "Дата регистрации"
+
+msgid "Пользователь"
+msgstr "Пользователь"
+
+msgid "Пользователи"
+msgstr "Пользователи"
+
+#
+# ── Client model ────────────────────────────
+#
+
+msgid "Телефон"
+msgstr "Телефон"
+
+msgid "Компания"
+msgstr "Компания"
+
+msgid "Создан"
+msgstr "Создан"
+
+msgid "Обновлён"
+msgstr "Обновлён"
+
+msgid "Клиент"
+msgstr "Клиент"
+
+msgid "Клиенты"
+msgstr "Клиенты"
+
+msgid "Клиент с таким email и телефоном уже существует."
+msgstr "Клиент с таким email и телефоном уже существует."
+
+#
+# ── Deal model ──────────────────────────────
+#
+
+msgid "Новый"
+msgstr "Новый"
+
+msgid "В работе"
+msgstr "В работе"
+
+msgid "Коммерческое предложение"
+msgstr "Коммерческое предложение"
+
+msgid "Согласование"
+msgstr "Согласование"
+
+msgid "Оплата"
+msgstr "Оплата"
+
+msgid "Закрыто (успех)"
+msgstr "Закрыто (успех)"
+
+msgid "Закрыто (провал)"
+msgstr "Закрыто (провал)"
+
+msgid "₸ Тенге"
+msgstr "₸ Тенге"
+
+msgid "₽ Рубль"
+msgstr "₽ Рубль"
+
+msgid "$ Доллар"
+msgstr "$ Доллар"
+
+msgid "€ Евро"
+msgstr "€ Евро"
+
+msgid "Название сделки"
+msgstr "Название сделки"
+
+msgid "Сумма"
+msgstr "Сумма"
+
+msgid "Валюта"
+msgstr "Валюта"
+
+msgid "Стадия"
+msgstr "Стадия"
+
+msgid "Вероятность (%)"
+msgstr "Вероятность (%)"
+
+msgid "Ожидаемая дата закрытия"
+msgstr "Ожидаемая дата закрытия"
+
+msgid "Ответственный менеджер"
+msgstr "Ответственный менеджер"
+
+msgid "Создана"
+msgstr "Создана"
+
+msgid "Обновлена"
+msgstr "Обновлена"
+
+msgid "Сделка"
+msgstr "Сделка"
+
+msgid "Сделки"
+msgstr "Сделки"
+
+#
+# ── Task model ──────────────────────────────
+#
+
+msgid "Звонок"
+msgstr "Звонок"
+
+msgid "Встреча"
+msgstr "Встреча"
+
+msgid "Письмо"
+msgstr "Письмо"
+
+msgid "Открыта"
+msgstr "Открыта"
+
+msgid "Выполнена"
+msgstr "Выполнена"
+
+msgid "Тип задачи"
+msgstr "Тип задачи"
+
+msgid "Заголовок"
+msgstr "Заголовок"
+
+msgid "Описание"
+msgstr "Описание"
+
+msgid "Дедлайн"
+msgstr "Дедлайн"
+
+msgid "Статус"
+msgstr "Статус"
+
+msgid "Создатель"
+msgstr "Создатель"
+
+msgid "Задача"
+msgstr "Задача"
+
+msgid "Задачи"
+msgstr "Задачи"
+
+#
+# ── ActionLog model ─────────────────────────
+#
+
+msgid "Действие"
+msgstr "Действие"
+
+msgid "Дата"
+msgstr "Дата"
+
+msgid "Запись журнала"
+msgstr "Запись журнала"
+
+msgid "Журнал действий"
+msgstr "Журнал действий"
+
+#
+# ── Serializer validation errors ────────────
+#
+
+msgid "Имя клиента обязательно."
+msgstr "Имя клиента обязательно."
+
+msgid "Имя клиента не может быть пустым."
+msgstr "Имя клиента не может быть пустым."
+
+msgid "Название сделки обязательно."
+msgstr "Название сделки обязательно."
+
+msgid "Название сделки не может быть пустым."
+msgstr "Название сделки не может быть пустым."
+
+msgid "Введите корректную сумму."
+msgstr "Введите корректную сумму."
+
+msgid "Недопустимая стадия сделки."
+msgstr "Недопустимая стадия сделки."
+
+msgid "Недопустимая валюта."
+msgstr "Недопустимая валюта."
+
+msgid "Заголовок задачи обязателен."
+msgstr "Заголовок задачи обязателен."
+
+msgid "Заголовок задачи не может быть пустым."
+msgstr "Заголовок задачи не может быть пустым."
+
+msgid "Дедлайн обязателен."
+msgstr "Дедлайн обязателен."
+
+msgid "Неверный формат даты."
+msgstr "Неверный формат даты."
+
+msgid "Недопустимый тип задачи."
+msgstr "Недопустимый тип задачи."

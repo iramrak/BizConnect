@@ -1,0 +1,217 @@
+{
+  "Common": {
+    "loading": "Жүктелуде…",
+    "delete": "Жою",
+    "cancel": "Бас тарту",
+    "close": "Жабу",
+    "save": "Сақтау",
+    "create": "Құру",
+    "noData": "Көрсету үшін деректер жоқ",
+    "confirm_delete": "«{name}» жоясыз ба?"
+  },
+  "Sidebar": {
+    "dashboard": "Басқару тақтасы",
+    "clients": "Клиенттер",
+    "deals": "Мәмілелер",
+    "tasks": "Тапсырмалар",
+    "admin": "Әкімші",
+    "head": "Жетекші",
+    "manager": "Менеджер",
+    "logout": "Шығу"
+  },
+  "Dashboard": {
+    "title": "Басқару тақтасы",
+    "subtitle": "CRM негізгі көрсеткіштерінің шолуы",
+    "totalDeals": "Барлық мәмілелер",
+    "budget": "Бюджет",
+    "clients": "Клиенттер",
+    "activeTasks": "Белсенді тапсырмалар",
+    "completedTasks": "Орындалған тапсырмалар",
+    "overdueTasks": "Мерзімі өткен",
+    "conversionRate": "Сәттілікке конверсия",
+    "dealsByStage": "Кезеңдер бойынша мәмілелер",
+    "funnelDistribution": "Воронка бөлінісі",
+    "dealsCount": "Мәмілелер",
+    "probability": "Ықтималдық",
+    "noData": "Көрсету үшін деректер жоқ"
+  },
+  "Deals": {
+    "title": "Мәмілелер",
+    "loading": "Жүктелуде…",
+    "dealsInPipeline": "{count} мәміле · воронкада {amount}",
+    "newDeal": "Жаңа мәміле",
+    "changeStage": "Кезеңді өзгерту",
+    "deleteDeal": "«{title}» мәмілесін жоясыз ба?",
+    "stages": {
+      "new": "Жаңа",
+      "in_progress": "Жұмыста",
+      "proposal": "КҚ",
+      "negotiation": "Келісу",
+      "payment": "Төлем",
+      "closed_won": "Сәтті",
+      "closed_lost": "Сәтсіз"
+    },
+    "detail": {
+      "budget": "Бюджет",
+      "client": "Клиент",
+      "phone": "Телефон",
+      "manager": "Менеджер",
+      "expectedClose": "Күтілетін жабылу",
+      "created": "Құрылған",
+      "updated": "Жаңартылған"
+    },
+    "probability": "Ықтималдық",
+    "noData": "Көрсету үшін деректер жоқ"
+  },
+  "Tasks": {
+    "title": "Тапсырмалар",
+    "newTask": "Жаңа тапсырма",
+    "loading": "Жүктелуде…",
+    "taskCount": "{count} тапсырма",
+    "taskCountOverdue": "{count} тапсырма · {overdue} мерзімі өткен",
+    "tabs": {
+      "all": "Барлығы",
+      "today": "Бүгінгі",
+      "overdue": "Мерзімі өткен",
+      "completed": "Орындалған"
+    },
+    "empty": {
+      "all": "Тапсырмалар жоқ. Біріншісін жасаңыз!",
+      "today": "Бүгінге тапсырма жоқ 🎉",
+      "overdue": "Мерзімі өткен тапсырмалар жоқ 👍",
+      "completed": "Орындалған тапсырмалар әзірше жоқ"
+    },
+    "deleteTask": "«{title}» тапсырмасын жоясыз ба?"
+  },
+  "Clients": {
+    "title": "Клиенттер",
+    "addClient": "Клиент қосу",
+    "searchPlaceholder": "Аты, телефоны немесе email бойынша іздеу…",
+    "table": {
+      "name": "Аты",
+      "company": "Компания",
+      "phone": "Телефон",
+      "email": "Email",
+      "added": "Қосылған"
+    },
+    "empty": "Клиенттер тізімі бос. Біріншісін қосыңыз!",
+    "notFound": "Клиенттер табылмады. Басқа сұрауды қолданыңыз.",
+    "deleteClient": "«{name}» клиентін жоясыз ба?",
+    "plurals": {
+      "one": "клиент",
+      "few": "клиент",
+      "many": "клиент"
+    }
+  },
+  "AIChat": {
+    "title": "ЖИ-көмекші",
+    "model": "gpt-4o-mini",
+    "greeting": "Сәлем! Мен CleanDerect ЖИ-көмекшісімін. Не көмек бере аламын?",
+    "placeholder": "Хабарлама жазыңыз…",
+    "thinking": "ЖИ ойлануда…",
+    "send": "Жіберу",
+    "openChat": "ЖИ-көмекші",
+    "closeChat": "Чатты жабу",
+    "error": "⚠️ ЖИ-ға қосылу мүмкін болмады. Кейінірек қайталаңыз.",
+    "actions": {
+      "create_task": "Тапсырма құру",
+      "create_deal": "Мәміле құру",
+      "update_deal": "Мәмілені жаңарту",
+      "create_client": "Клиент қосу",
+      "apply": "Қолдану",
+      "cancel": "Бас тарту",
+      "applied": "Орындалды",
+      "cancelled": "Бас тартылды",
+      "actionError": "Қате",
+      "successMessage": "✅ {action} сәтті орындалды.",
+      "errorMessage": "❌ Әрекет орындау кезінде қате. Деректерді тексеріп, қайталаңыз.",
+      "cancelledMessage": "Әрекет бас тартылды."
+    }
+  },
+  "CreateDeal": {
+    "title": "Жаңа мәміле",
+    "dealTitle": "Мәміле атауы",
+    "dealTitlePlaceholder": "Мысалы: Жабдық жеткізу",
+    "clientName": "Клиент аты",
+    "clientNamePlaceholder": "Ахмет Сериков",
+    "clientPhone": "Клиент телефоны",
+    "clientPhonePlaceholder": "+7 (777) 123-45-67",
+    "amount": "Сома",
+    "amountPlaceholder": "100000",
+    "currency": "Валюта",
+    "expectedCloseDate": "Күтілетін жабылу күні",
+    "required": "міндетті",
+    "titleRequired": "Мәміле атауы міндетті",
+    "createError": "Мәмілені құру мүмкін болмады",
+    "submit": "Мәміле құру",
+    "currencies": {
+      "KZT": "₸ Теңге",
+      "RUB": "₽ Рубль",
+      "USD": "$ Доллар",
+      "EUR": "€ Евро"
+    }
+  },
+  "CreateTask": {
+    "title": "Жаңа тапсырма",
+    "taskTitle": "Тапсырма атауы",
+    "taskTitlePlaceholder": "Мысалы: Клиентке қоңырау шалу",
+    "taskType": "Тапсырма түрі",
+    "types": {
+      "call": "Қоңырау",
+      "meeting": "Кездесу",
+      "email": "Email"
+    },
+    "deal": "Мәмілеге тіркеу",
+    "noDeal": "Мәмілесіз",
+    "deadline": "Мерзім",
+    "deadlinePlaceholder": "Күні мен уақытын таңдаңыз",
+    "deadlineRequired": "Мерзімді көрсетіңіз",
+    "description": "Сипаттама",
+    "descriptionPlaceholder": "Қосымша ақпарат…",
+    "required": "міндетті",
+    "titleRequired": "Тапсырма тақырыбы міндетті",
+    "createError": "Тапсырманы құру мүмкін болмады",
+    "submit": "Тапсырма құру"
+  },
+  "CreateClient": {
+    "title": "Жаңа клиент",
+    "firstName": "Аты",
+    "firstNamePlaceholder": "Асқар",
+    "lastName": "Тегі",
+    "lastNamePlaceholder": "Мұхамедов",
+    "phone": "Телефон",
+    "phonePlaceholder": "+7 (777) 123-45-67",
+    "email": "Email",
+    "emailPlaceholder": "client@example.com",
+    "company": "Компания",
+    "companyPlaceholder": "ЖШС Үлгі",
+    "firstNameRequired": "Клиент аты міндетті",
+    "createError": "Клиентті құру мүмкін болмады",
+    "submit": "Клиент құру"
+  },
+  "AIChat": {
+    "greeting": "Сәлем! Мен CleanDerect ЖИ-көмекшісімін. Қалай көмектесе аламын?",
+    "title": "ЖИ-көмекші",
+    "openChat": "ЖИ-көмекші",
+    "closeChat": "Чатты жабу",
+    "thinking": "ЖИ ойлауда\u2026",
+    "placeholder": "Хабарлама жазы\u04a3ыз\u2026",
+    "send": "Жіберу",
+    "actions": {
+      "create_task": "Тапсырма құру",
+      "create_deal": "Мәміле құру",
+      "update_deal": "Мәмілені жаңарту",
+      "create_client": "Клиент қосу",
+      "fallback": "Әрекет"
+    },
+    "apply": "Қолдану",
+    "cancelAction": "Болдырмау",
+    "applied": "Орындалды",
+    "error": "Қате",
+    "cancelled": "Болдырылмады",
+    "actionSuccess": "\u2705 {action} сәтті орындалды.",
+    "actionError": "\u274c Әрекетті орындау кезінде қате. Деректерді тексеріп, қайта көріңіз.",
+    "actionCancelled": "Әрекет болдырылмады.",
+    "chatError": "\u26a0\ufe0f ЖИ-мен байланыс орнату мүмкін болмады. Кейінірек қайта көріңіз."
+  }
+}

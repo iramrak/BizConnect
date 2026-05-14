@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 import { useCRMStore } from "@/lib/store";
+import { useTranslations } from "next-intl";
 
 /* ── Types ─────────────────────────────────── */
 
@@ -40,25 +41,17 @@ interface ChatMessage {
     actionStatus?: "pending" | "applied" | "cancelled" | "error";
 }
 
-/* ── Action labels ─────────────────────────── */
-
-const ACTION_LABELS: Record<string, string> = {
-    create_task: "Создать задачу",
-    create_deal: "Создать сделку",
-    update_deal: "Обновить сделку",
-    create_client: "Добавить клиента",
-};
-
 /* ── Component ─────────────────────────────── */
 
 export default function AIChatWidget() {
     const { data: session } = useSession();
+    const t = useTranslations("AIChat");
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             id: 0,
             role: "ai",
-            text: "Привет! Я ИИ-ассистент CleanDerect. Чем могу помочь?",
+            text: t("greeting"),
         },
     ]);
     const [input, setInput] = useState("");
@@ -128,7 +121,7 @@ export default function AIChatWidget() {
             console.error("AI chat error:", err);
             addMessage({
                 role: "system",
-                text: "⚠️ Не удалось связаться с ИИ. Попробуйте позже.",
+                text: t("chatError"),
             });
         } finally {
             setLoading(false);
@@ -178,21 +171,21 @@ export default function AIChatWidget() {
 
             addMessage({
                 role: "system",
-                text: `✅ ${ACTION_LABELS[action.action_type] ?? "Действие"} выполнено успешно.`,
+                text: t("actionSuccess", { action: t(`actions.${action.action_type}`) }),
             });
         } catch (err) {
             console.error("Action apply error:", err);
             updateMessage(msgId, { actionStatus: "error" });
             addMessage({
                 role: "system",
-                text: "❌ Ошибка при выполнении действия. Проверьте данные и попробуйте снова.",
+                text: t("actionError"),
             });
         }
     };
 
     const handleCancelAction = (msgId: number) => {
         updateMessage(msgId, { actionStatus: "cancelled" });
-        addMessage({ role: "system", text: "Действие отменено." });
+        addMessage({ role: "system", text: t("actionCancelled") });
     };
 
     /* ── Render ──────────────────────────────── */
@@ -209,7 +202,7 @@ export default function AIChatWidget() {
                     ? "bg-slate-700 hover:bg-slate-600 rotate-0"
                     : "bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-blue-500/30"
                     }`}
-                title={open ? "Закрыть чат" : "ИИ-ассистент"}
+                title={open ? t("closeChat") : t("openChat")}
             >
                 {open ? (
                     <ChevronDown className="w-6 h-6 text-white" />
@@ -229,7 +222,7 @@ export default function AIChatWidget() {
                             </div>
                             <div>
                                 <h3 className="text-sm font-semibold text-white">
-                                    ИИ-ассистент
+                                    {t("title")}
                                 </h3>
                                 <p className="text-[11px] text-slate-500">gpt-4o-mini</p>
                             </div>
@@ -256,7 +249,7 @@ export default function AIChatWidget() {
                         {loading && (
                             <div className="flex items-center gap-2 text-sm text-slate-500 px-1">
                                 <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
-                                ИИ думает…
+                                {t("thinking")}
                             </div>
                         )}
 
@@ -277,7 +270,7 @@ export default function AIChatWidget() {
                                 type="text"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
-                                placeholder="Напишите сообщение…"
+                                placeholder={t("placeholder")}
                                 disabled={loading}
                                 className="flex-1 bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all disabled:opacity-50"
                             />
@@ -285,7 +278,7 @@ export default function AIChatWidget() {
                                 type="submit"
                                 disabled={loading || !input.trim()}
                                 className="p-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl transition-colors"
-                                title="Отправить"
+                                title={t("send")}
                             >
                                 <Send className="w-4 h-4" />
                             </button>
@@ -353,12 +346,13 @@ function ActionCard({
     onApply: (msgId: number, action: ProposedAction) => void;
     onCancel: (msgId: number) => void;
 }) {
+    const t = useTranslations("AIChat");
     return (
         <div className="mt-3 bg-slate-900/60 border border-slate-600/40 rounded-xl p-3">
             {/* Label */}
             <div className="flex items-center gap-2 mb-2">
                 <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
-                    {ACTION_LABELS[action.action_type] ?? "Действие"}
+                    {t(`actions.${action.action_type}`)}
                 </span>
             </div>
 
@@ -373,30 +367,30 @@ function ActionCard({
                         className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-medium rounded-lg hover:bg-emerald-500/25 transition-colors"
                     >
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        Применить
+                        {t("apply")}
                     </button>
                     <button
                         onClick={() => onCancel(msgId)}
                         className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-700/40 border border-slate-600/30 text-slate-400 text-xs font-medium rounded-lg hover:bg-slate-700/60 transition-colors"
                     >
                         <XCircle className="w-3.5 h-3.5" />
-                        Отмена
+                        {t("cancelAction")}
                     </button>
                 </div>
             ) : status === "applied" ? (
                 <div className="flex items-center gap-1.5 text-xs text-emerald-400">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    Выполнено
+                    {t("applied")}
                 </div>
             ) : status === "error" ? (
                 <div className="flex items-center gap-1.5 text-xs text-red-400">
                     <XCircle className="w-3.5 h-3.5" />
-                    Ошибка
+                    {t("error")}
                 </div>
             ) : (
                 <div className="flex items-center gap-1.5 text-xs text-slate-500">
                     <XCircle className="w-3.5 h-3.5" />
-                    Отменено
+                    {t("cancelled")}
                 </div>
             )}
         </div>

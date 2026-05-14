@@ -1,0 +1,252 @@
+# CleanDerect CRM — Kazakh translations
+# Translate all user-facing strings from Russian to Kazakh.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: CleanDerect CRM 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-12 23:30+0500\n"
+"PO-Revision-Date: 2026-05-12 23:30+0500\n"
+"Last-Translator: CleanDerect Dev Team\n"
+"Language: kk\n"
+"Language-Team: Kazakh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#
+# ── User model ──────────────────────────────
+#
+
+#: crm/models.py — User.Role choices
+msgid "Администратор"
+msgstr "Әкімші"
+
+msgid "Менеджер"
+msgstr "Менеджер"
+
+msgid "Руководитель"
+msgstr "Жетекші"
+
+#: crm/models.py — User fields
+msgid "Email"
+msgstr "Email"
+
+msgid "Имя"
+msgstr "Аты"
+
+msgid "Фамилия"
+msgstr "Тегі"
+
+msgid "Роль"
+msgstr "Рөл"
+
+msgid "Активен"
+msgstr "Белсенді"
+
+msgid "Доступ к админке"
+msgstr "Әкімші панеліне қатынас"
+
+msgid "Дата регистрации"
+msgstr "Тіркелу күні"
+
+msgid "Пользователь"
+msgstr "Пайдаланушы"
+
+msgid "Пользователи"
+msgstr "Пайдаланушылар"
+
+#
+# ── Client model ────────────────────────────
+#
+
+msgid "Телефон"
+msgstr "Телефон"
+
+msgid "Компания"
+msgstr "Компания"
+
+msgid "Создан"
+msgstr "Құрылған"
+
+msgid "Обновлён"
+msgstr "Жаңартылған"
+
+msgid "Клиент"
+msgstr "Клиент"
+
+msgid "Клиенты"
+msgstr "Клиенттер"
+
+msgid "Клиент с таким email и телефоном уже существует."
+msgstr "Осындай email және телефон нөмірі бар клиент бұрыннан бар."
+
+#
+# ── Deal model ──────────────────────────────
+#
+
+msgid "Новый"
+msgstr "Жаңа"
+
+msgid "В работе"
+msgstr "Жұмыста"
+
+msgid "Коммерческое предложение"
+msgstr "Коммерциялық ұсыныс"
+
+msgid "Согласование"
+msgstr "Келісу"
+
+msgid "Оплата"
+msgstr "Төлем"
+
+msgid "Закрыто (успех)"
+msgstr "Жабылды (сәтті)"
+
+msgid "Закрыто (провал)"
+msgstr "Жабылды (сәтсіз)"
+
+msgid "₸ Тенге"
+msgstr "₸ Теңге"
+
+msgid "₽ Рубль"
+msgstr "₽ Рубль"
+
+msgid "$ Доллар"
+msgstr "$ Доллар"
+
+msgid "€ Евро"
+msgstr "€ Евро"
+
+msgid "Название сделки"
+msgstr "Мәміле атауы"
+
+msgid "Сумма"
+msgstr "Сома"
+
+msgid "Валюта"
+msgstr "Валюта"
+
+msgid "Стадия"
+msgstr "Кезең"
+
+msgid "Вероятность (%)"
+msgstr "Ықтималдық (%)"
+
+msgid "Ожидаемая дата закрытия"
+msgstr "Күтілетін жабылу күні"
+
+msgid "Ответственный менеджер"
+msgstr "Жауапты менеджер"
+
+msgid "Создана"
+msgstr "Құрылған"
+
+msgid "Обновлена"
+msgstr "Жаңартылған"
+
+msgid "Сделка"
+msgstr "Мәміле"
+
+msgid "Сделки"
+msgstr "Мәмілелер"
+
+#
+# ── Task model ──────────────────────────────
+#
+
+msgid "Звонок"
+msgstr "Қоңырау"
+
+msgid "Встреча"
+msgstr "Кездесу"
+
+msgid "Письмо"
+msgstr "Хат"
+
+msgid "Открыта"
+msgstr "Ашық"
+
+msgid "Выполнена"
+msgstr "Орындалған"
+
+msgid "Тип задачи"
+msgstr "Тапсырма түрі"
+
+msgid "Заголовок"
+msgstr "Тақырып"
+
+msgid "Описание"
+msgstr "Сипаттама"
+
+msgid "Дедлайн"
+msgstr "Мерзім"
+
+msgid "Статус"
+msgstr "Күй"
+
+msgid "Создатель"
+msgstr "Құрушы"
+
+msgid "Задача"
+msgstr "Тапсырма"
+
+msgid "Задачи"
+msgstr "Тапсырмалар"
+
+#
+# ── ActionLog model ─────────────────────────
+#
+
+msgid "Действие"
+msgstr "Әрекет"
+
+msgid "Дата"
+msgstr "Күні"
+
+msgid "Запись журнала"
+msgstr "Журнал жазбасы"
+
+msgid "Журнал действий"
+msgstr "Әрекеттер журналы"
+
+#
+# ── Serializer validation errors ────────────
+#
+
+msgid "Имя клиента обязательно."
+msgstr "Клиент аты міндетті."
+
+msgid "Имя клиента не может быть пустым."
+msgstr "Клиент аты бос болмауы керек."
+
+msgid "Название сделки обязательно."
+msgstr "Мәміле атауы міндетті."
+
+msgid "Название сделки не может быть пустым."
+msgstr "Мәміле атауы бос болмауы керек."
+
+msgid "Введите корректную сумму."
+msgstr "Дұрыс соманы енгізіңіз."
+
+msgid "Недопустимая стадия сделки."
+msgstr "Жарамсыз мәміле кезеңі."
+
+msgid "Недопустимая валюта."
+msgstr "Жарамсыз валюта."
+
+msgid "Заголовок задачи обязателен."
+msgstr "Тапсырма тақырыбы міндетті."
+
+msgid "Заголовок задачи не может быть пустым."
+msgstr "Тапсырма тақырыбы бос болмауы керек."
+
+msgid "Дедлайн обязателен."
+msgstr "Мерзім міндетті."
+
+msgid "Неверный формат даты."
+msgstr "Күн форматы қате."
+
+msgid "Недопустимый тип задачи."
+msgstr "Жарамсыз тапсырма түрі."

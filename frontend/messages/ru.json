@@ -1,0 +1,217 @@
+{
+  "Common": {
+    "loading": "Загрузка…",
+    "delete": "Удалить",
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "save": "Сохранить",
+    "create": "Создать",
+    "noData": "Нет данных для отображения",
+    "confirm_delete": "Удалить «{name}»?"
+  },
+  "Sidebar": {
+    "dashboard": "Дашборд",
+    "clients": "Клиенты",
+    "deals": "Сделки",
+    "tasks": "Задачи",
+    "admin": "Администратор",
+    "head": "Руководитель",
+    "manager": "Менеджер",
+    "logout": "Выйти"
+  },
+  "Dashboard": {
+    "title": "Дашборд",
+    "subtitle": "Обзор ключевых показателей CRM",
+    "totalDeals": "Всего сделок",
+    "budget": "Бюджет",
+    "clients": "Клиентов",
+    "activeTasks": "Активные задачи",
+    "completedTasks": "Выполненных задач",
+    "overdueTasks": "Просроченных",
+    "conversionRate": "Конверсия в успех",
+    "dealsByStage": "Сделки по стадиям",
+    "funnelDistribution": "Распределение воронки",
+    "dealsCount": "Сделок",
+    "probability": "Вероятность",
+    "noData": "Нет данных для отображения"
+  },
+  "Deals": {
+    "title": "Сделки",
+    "loading": "Загрузка…",
+    "dealsInPipeline": "{count} сделок · {amount} в воронке",
+    "newDeal": "Новая сделка",
+    "changeStage": "Сменить стадию",
+    "deleteDeal": "Удалить сделку «{title}»?",
+    "stages": {
+      "new": "Новый",
+      "in_progress": "В работе",
+      "proposal": "КП",
+      "negotiation": "Согласование",
+      "payment": "Оплата",
+      "closed_won": "Успех",
+      "closed_lost": "Провал"
+    },
+    "detail": {
+      "budget": "Бюджет",
+      "client": "Клиент",
+      "phone": "Телефон",
+      "manager": "Менеджер",
+      "expectedClose": "Ожидаемое закрытие",
+      "created": "Создана",
+      "updated": "Обновлена"
+    },
+    "probability": "Вероятность",
+    "noData": "Нет данных для отображения"
+  },
+  "Tasks": {
+    "title": "Задачи",
+    "newTask": "Новая задача",
+    "loading": "Загрузка…",
+    "taskCount": "{count} задач",
+    "taskCountOverdue": "{count} задач · {overdue} просрочено",
+    "tabs": {
+      "all": "Все",
+      "today": "На сегодня",
+      "overdue": "Просроченные",
+      "completed": "Выполненные"
+    },
+    "empty": {
+      "all": "Нет задач. Создайте первую!",
+      "today": "На сегодня задач нет 🎉",
+      "overdue": "Просроченных задач нет 👍",
+      "completed": "Выполненных задач пока нет"
+    },
+    "deleteTask": "Удалить задачу «{title}»?"
+  },
+  "Clients": {
+    "title": "Клиенты",
+    "addClient": "Добавить клиента",
+    "searchPlaceholder": "Поиск по имени, телефону или email…",
+    "table": {
+      "name": "Имя",
+      "company": "Компания",
+      "phone": "Телефон",
+      "email": "Email",
+      "added": "Добавлен"
+    },
+    "empty": "Список клиентов пуст. Добавьте первого клиента!",
+    "notFound": "Клиенты не найдены. Попробуйте другой запрос.",
+    "deleteClient": "Удалить клиента «{name}»?",
+    "plurals": {
+      "one": "клиент",
+      "few": "клиента",
+      "many": "клиентов"
+    }
+  },
+  "AIChat": {
+    "title": "ИИ-ассистент",
+    "model": "gpt-4o-mini",
+    "greeting": "Привет! Я ИИ-ассистент CleanDerect. Чем могу помочь?",
+    "placeholder": "Напишите сообщение…",
+    "thinking": "ИИ думает…",
+    "send": "Отправить",
+    "openChat": "ИИ-ассистент",
+    "closeChat": "Закрыть чат",
+    "error": "⚠️ Не удалось связаться с ИИ. Попробуйте позже.",
+    "actions": {
+      "create_task": "Создать задачу",
+      "create_deal": "Создать сделку",
+      "update_deal": "Обновить сделку",
+      "create_client": "Добавить клиента",
+      "apply": "Применить",
+      "cancel": "Отмена",
+      "applied": "Выполнено",
+      "cancelled": "Отменено",
+      "actionError": "Ошибка",
+      "successMessage": "✅ {action} выполнено успешно.",
+      "errorMessage": "❌ Ошибка при выполнении действия. Проверьте данные и попробуйте снова.",
+      "cancelledMessage": "Действие отменено."
+    }
+  },
+  "CreateDeal": {
+    "title": "Новая сделка",
+    "dealTitle": "Название сделки",
+    "dealTitlePlaceholder": "Например: Поставка оборудования",
+    "clientName": "Имя клиента",
+    "clientNamePlaceholder": "Иван Петров",
+    "clientPhone": "Телефон клиента",
+    "clientPhonePlaceholder": "+7 (777) 123-45-67",
+    "amount": "Сумма",
+    "amountPlaceholder": "100000",
+    "currency": "Валюта",
+    "expectedCloseDate": "Ожидаемая дата закрытия",
+    "required": "обязательно",
+    "titleRequired": "Название сделки обязательно",
+    "createError": "Не удалось создать сделку",
+    "submit": "Создать сделку",
+    "currencies": {
+      "KZT": "₸ Тенге",
+      "RUB": "₽ Рубль",
+      "USD": "$ Доллар",
+      "EUR": "€ Евро"
+    }
+  },
+  "CreateTask": {
+    "title": "Новая задача",
+    "taskTitle": "Название задачи",
+    "taskTitlePlaceholder": "Например: Позвонить клиенту",
+    "taskType": "Тип задачи",
+    "types": {
+      "call": "Звонок",
+      "meeting": "Встреча",
+      "email": "Email"
+    },
+    "deal": "Привязать к сделке",
+    "noDeal": "Без сделки",
+    "deadline": "Дедлайн",
+    "deadlinePlaceholder": "Выберите дату и время",
+    "deadlineRequired": "Укажите дедлайн",
+    "description": "Описание",
+    "descriptionPlaceholder": "Дополнительная информация…",
+    "required": "обязательно",
+    "titleRequired": "Заголовок задачи обязателен",
+    "createError": "Не удалось создать задачу",
+    "submit": "Создать задачу"
+  },
+  "CreateClient": {
+    "title": "Новый клиент",
+    "firstName": "Имя",
+    "firstNamePlaceholder": "Иван",
+    "lastName": "Фамилия",
+    "lastNamePlaceholder": "Петров",
+    "phone": "Телефон",
+    "phonePlaceholder": "+7 (777) 123-45-67",
+    "email": "Email",
+    "emailPlaceholder": "client@example.com",
+    "company": "Компания",
+    "companyPlaceholder": "ООО Пример",
+    "firstNameRequired": "Имя клиента обязательно",
+    "createError": "Не удалось создать клиента",
+    "submit": "Создать клиента"
+  },
+  "AIChat": {
+    "greeting": "Привет! Я ИИ-ассистент CleanDerect. Чем могу помочь?",
+    "title": "ИИ-ассистент",
+    "openChat": "ИИ-ассистент",
+    "closeChat": "Закрыть чат",
+    "thinking": "ИИ думает\u2026",
+    "placeholder": "Напишите сообщение\u2026",
+    "send": "Отправить",
+    "actions": {
+      "create_task": "Создать задачу",
+      "create_deal": "Создать сделку",
+      "update_deal": "Обновить сделку",
+      "create_client": "Добавить клиента",
+      "fallback": "Действие"
+    },
+    "apply": "Применить",
+    "cancelAction": "Отмена",
+    "applied": "Выполнено",
+    "error": "Ошибка",
+    "cancelled": "Отменено",
+    "actionSuccess": "\u2705 {action} выполнено успешно.",
+    "actionError": "\u274c Ошибка при выполнении действия. Проверьте данные и попробуйте снова.",
+    "actionCancelled": "Действие отменено.",
+    "chatError": "\u26a0\ufe0f Не удалось связаться с ИИ. Попробуйте позже."
+  }
+}

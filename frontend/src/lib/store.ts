@@ -1,9 +1,9 @@
 /**
- * CleanDerect CRM — Global Event Store (Zustand)
+ * CleanDerect CRM — Global Store (Zustand)
  *
- * Lightweight store that tracks "last updated" timestamps
- * so pages can auto-refresh when data changes elsewhere
- * (e.g. AI creates a task → Tasks page refetches).
+ * Tracks:
+ * - "last updated" version counters for auto-refresh across pages
+ * - Current locale for sending to API (e.g. AI chat prompts)
  */
 
 import { create } from "zustand";
@@ -18,6 +18,10 @@ interface CRMStore {
     invalidateTasks: () => void;
     invalidateDeals: () => void;
     invalidateClients: () => void;
+
+    /** Current UI locale ('ru' | 'kk') — synced by LanguageSwitcher */
+    locale: string;
+    setLocale: (locale: string) => void;
 }
 
 export const useCRMStore = create<CRMStore>((set) => ({
@@ -28,4 +32,7 @@ export const useCRMStore = create<CRMStore>((set) => ({
     invalidateTasks: () => set((s) => ({ tasksVersion: s.tasksVersion + 1 })),
     invalidateDeals: () => set((s) => ({ dealsVersion: s.dealsVersion + 1 })),
     invalidateClients: () => set((s) => ({ clientsVersion: s.clientsVersion + 1 })),
+
+    locale: "ru",
+    setLocale: (locale) => set({ locale }),
 }));

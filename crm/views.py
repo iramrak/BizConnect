@@ -79,41 +79,73 @@ class DealViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
+        """
+        Create a Deal, resolving (or creating) the Client from `client_name`.
+
+        Strategy:
+        1. Parse client_name → first_name + last_name.
+        2. Look up existing client by exact (case-insensitive) full name.
+        3. If not found — create a new client with email/phone = None.
+        4. If phone was supplied and the found client has none — update it.
+        """
         client_name = self.request.data.get("client_name", "").strip()
-        client_phone = serializer.validated_data.pop("client_phone", None) or ""
-        client_phone = client_phone.strip()
+        client_email = self.request.data.get("client_email", None)
+        client_phone = serializer.validated_data.pop("client_phone", None) or None
+        if isinstance(client_phone, str):
+            client_phone = client_phone.strip() or None
+        if isinstance(client_email, str):
+            client_email = client_email.strip() or None
+
         client = None
 
         if client_name:
-            # Try to find existing client by name (case-insensitive)
             parts = client_name.split(maxsplit=1)
             first = parts[0]
             last = parts[1] if len(parts) > 1 else ""
 
-            client = Client.objects.filter(
-                first_name__icontains=first
-            ).first()
+            # --- look up by full name (case-insensitive) ---
+            lookup = Client.objects.filter(first_name__iexact=first)
+            if last:
+                lookup = lookup.filter(last_name__iexact=last)
+            else:
+                lookup = lookup.filter(last_name="")
+            client = lookup.first()
 
-            # If not found — create a new client record
             if not client:
+                # Create a new client; email & phone stay None to avoid
+                # UNIQUE-constraint collisions on empty values.
                 client = Client.objects.create(
                     first_name=first,
                     last_name=last,
                     phone=client_phone,
+                    email=client_email,
                 )
-            elif client_phone and not client.phone:
-                # Update phone if client exists but has no phone
-                client.phone = client_phone
-                client.save(update_fields=["phone"])
+            else:
+                # Update missing contact info on the existing client
+                updated_fields = []
+                if client_phone and not client.phone:
+                    client.phone = client_phone
+                    updated_fields.append("phone")
+                if client_email and not client.email:
+                    client.email = client_email
+                    updated_fields.append("email")
+                if updated_fields:
+                    client.save(update_fields=updated_fields)
 
-        # Fallback: if still no client, create a placeholder
+        # Fallback: no name provided → find or create a placeholder client
         if not client:
-            client = Client.objects.create(
-                first_name="Не указан",
-                last_name="",
-                phone=client_phone,
-            )
+            client = Client.objects.filter(
+                first_name="Не указан", last_name=""
+            ).first()
+            if not client:
+                client = Client.objects.create(
+                    first_name="Не указан",
+                    last_name="",
+                    phone=None,
+                    email=None,
+                )
 
+        # Remove virtual fields that don't belong to the Deal model
         serializer.validated_data.pop("client_name", None)
         serializer.save(manager=self.request.user, client=client)
 

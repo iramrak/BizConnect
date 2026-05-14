@@ -7,8 +7,12 @@ Strategy for nested data:
 - Short serializers (UserShortSerializer, ClientShortSerializer) used in
   `to_representation()` to embed related objects on READ (GET).
 - On WRITE (POST/PUT/PATCH) — standard PrimaryKeyRelatedField is used.
+
+i18n: validation error_messages are wrapped in gettext_lazy(_) so they
+respect the Accept-Language header via Django's LocaleMiddleware.
 """
 
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from .models import ActionLog, Client, Deal, Task, User
@@ -76,6 +80,14 @@ class ClientSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
+        extra_kwargs = {
+            "first_name": {
+                "error_messages": {
+                    "required": _("Имя клиента обязательно."),
+                    "blank": _("Имя клиента не может быть пустым."),
+                },
+            },
+        }
 
 
 class DealSerializer(serializers.ModelSerializer):
@@ -120,6 +132,29 @@ class DealSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at", "manager", "client"]
+        extra_kwargs = {
+            "title": {
+                "error_messages": {
+                    "required": _("Название сделки обязательно."),
+                    "blank": _("Название сделки не может быть пустым."),
+                },
+            },
+            "amount": {
+                "error_messages": {
+                    "invalid": _("Введите корректную сумму."),
+                },
+            },
+            "stage": {
+                "error_messages": {
+                    "invalid_choice": _("Недопустимая стадия сделки."),
+                },
+            },
+            "currency": {
+                "error_messages": {
+                    "invalid_choice": _("Недопустимая валюта."),
+                },
+            },
+        }
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
@@ -159,6 +194,25 @@ class TaskSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ["id", "created_at", "creator"]
+        extra_kwargs = {
+            "title": {
+                "error_messages": {
+                    "required": _("Заголовок задачи обязателен."),
+                    "blank": _("Заголовок задачи не может быть пустым."),
+                },
+            },
+            "deadline": {
+                "error_messages": {
+                    "required": _("Дедлайн обязателен."),
+                    "invalid": _("Неверный формат даты."),
+                },
+            },
+            "task_type": {
+                "error_messages": {
+                    "invalid_choice": _("Недопустимый тип задачи."),
+                },
+            },
+        }
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

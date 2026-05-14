@@ -12,6 +12,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from .managers import UserManager
 
@@ -27,28 +28,28 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
 
     class Role(models.TextChoices):
-        ADMIN = "admin", "Администратор"
-        MANAGER = "manager", "Менеджер"
-        HEAD = "head", "Руководитель"
+        ADMIN = "admin", _("Администратор")
+        MANAGER = "manager", _("Менеджер")
+        HEAD = "head", _("Руководитель")
 
     email = models.EmailField(
-        "Email",
+        _("Email"),
         unique=True,
         db_index=True,
     )
-    first_name = models.CharField("Имя", max_length=150, blank=True)
-    last_name = models.CharField("Фамилия", max_length=150, blank=True)
+    first_name = models.CharField(_("Имя"), max_length=150, blank=True)
+    last_name = models.CharField(_("Фамилия"), max_length=150, blank=True)
     role = models.CharField(
-        "Роль",
+        _("Роль"),
         max_length=20,
         choices=Role.choices,
         default=Role.MANAGER,
         db_index=True,
     )
 
-    is_active = models.BooleanField("Активен", default=True)
-    is_staff = models.BooleanField("Доступ к админке", default=False)
-    date_joined = models.DateTimeField("Дата регистрации", default=timezone.now)
+    is_active = models.BooleanField(_("Активен"), default=True)
+    is_staff = models.BooleanField(_("Доступ к админке"), default=False)
+    date_joined = models.DateTimeField(_("Дата регистрации"), default=timezone.now)
 
     objects = UserManager()
 
@@ -56,8 +57,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
     class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
+        verbose_name = _("Пользователь")
+        verbose_name_plural = _("Пользователи")
         ordering = ["email"]
 
     def __str__(self):
@@ -79,23 +80,28 @@ class Client(models.Model):
     UniqueConstraint по (email, phone) — первый шаг к дедупликации.
     """
 
-    first_name = models.CharField("Имя", max_length=150)
-    last_name = models.CharField("Фамилия", max_length=150, blank=True)
-    phone = models.CharField("Телефон", max_length=30, blank=True, db_index=True)
-    email = models.EmailField("Email", blank=True, db_index=True)
-    company = models.CharField("Компания", max_length=255, blank=True, db_index=True)
-    created_at = models.DateTimeField("Создан", auto_now_add=True, db_index=True)
-    updated_at = models.DateTimeField("Обновлён", auto_now=True)
+    first_name = models.CharField(_("Имя"), max_length=150)
+    last_name = models.CharField(_("Фамилия"), max_length=150, blank=True)
+    phone = models.CharField(
+        _("Телефон"), max_length=30, blank=True, null=True, db_index=True
+    )
+    email = models.EmailField(_("Email"), blank=True, null=True, db_index=True)
+    company = models.CharField(_("Компания"), max_length=255, blank=True, db_index=True)
+    created_at = models.DateTimeField(_("Создан"), auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(_("Обновлён"), auto_now=True)
 
     class Meta:
-        verbose_name = "Клиент"
-        verbose_name_plural = "Клиенты"
+        verbose_name = _("Клиент")
+        verbose_name_plural = _("Клиенты")
         ordering = ["-created_at"]
         constraints = [
             models.UniqueConstraint(
                 fields=["email", "phone"],
                 name="unique_client_email_phone",
-                violation_error_message="Клиент с таким email и телефоном уже существует.",
+                condition=models.Q(email__isnull=False) & models.Q(phone__isnull=False),
+                violation_error_message=_(
+                    "Клиент с таким email и телефоном уже существует."
+                ),
             ),
         ]
 
@@ -117,53 +123,53 @@ class Deal(models.Model):
     """
 
     class Stage(models.TextChoices):
-        NEW = "new", "Новый"
-        IN_PROGRESS = "in_progress", "В работе"
-        PROPOSAL = "proposal", "Коммерческое предложение"
-        NEGOTIATION = "negotiation", "Согласование"
-        PAYMENT = "payment", "Оплата"
-        CLOSED_WON = "closed_won", "Закрыто (успех)"
-        CLOSED_LOST = "closed_lost", "Закрыто (провал)"
+        NEW = "new", _("Новый")
+        IN_PROGRESS = "in_progress", _("В работе")
+        PROPOSAL = "proposal", _("Коммерческое предложение")
+        NEGOTIATION = "negotiation", _("Согласование")
+        PAYMENT = "payment", _("Оплата")
+        CLOSED_WON = "closed_won", _("Закрыто (успех)")
+        CLOSED_LOST = "closed_lost", _("Закрыто (провал)")
 
     class Currency(models.TextChoices):
-        KZT = "KZT", "₸ Тенге"
-        RUB = "RUB", "₽ Рубль"
-        USD = "USD", "$ Доллар"
-        EUR = "EUR", "€ Евро"
+        KZT = "KZT", _("₸ Тенге")
+        RUB = "RUB", _("₽ Рубль")
+        USD = "USD", _("$ Доллар")
+        EUR = "EUR", _("€ Евро")
 
-    title = models.CharField("Название сделки", max_length=255)
+    title = models.CharField(_("Название сделки"), max_length=255)
     client = models.ForeignKey(
         Client,
         on_delete=models.CASCADE,
         related_name="deals",
-        verbose_name="Клиент",
+        verbose_name=_("Клиент"),
     )
     amount = models.DecimalField(
-        "Сумма",
+        _("Сумма"),
         max_digits=12,
         decimal_places=2,
         default=0,
     )
     currency = models.CharField(
-        "Валюта",
+        _("Валюта"),
         max_length=3,
         choices=Currency.choices,
         default=Currency.KZT,
     )
     stage = models.CharField(
-        "Стадия",
+        _("Стадия"),
         max_length=20,
         choices=Stage.choices,
         default=Stage.NEW,
         db_index=True,
     )
     probability = models.PositiveSmallIntegerField(
-        "Вероятность (%)",
+        _("Вероятность (%)"),
         default=0,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
     )
     expected_close_date = models.DateField(
-        "Ожидаемая дата закрытия",
+        _("Ожидаемая дата закрытия"),
         null=True,
         blank=True,
         db_index=True,
@@ -172,15 +178,15 @@ class Deal(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="deals",
-        verbose_name="Ответственный менеджер",
+        verbose_name=_("Ответственный менеджер"),
     )
 
-    created_at = models.DateTimeField("Создана", auto_now_add=True)
-    updated_at = models.DateTimeField("Обновлена", auto_now=True)
+    created_at = models.DateTimeField(_("Создана"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("Обновлена"), auto_now=True)
 
     class Meta:
-        verbose_name = "Сделка"
-        verbose_name_plural = "Сделки"
+        verbose_name = _("Сделка")
+        verbose_name_plural = _("Сделки")
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["manager", "stage"], name="idx_deal_manager_stage"),
@@ -201,13 +207,13 @@ class Task(models.Model):
     """
 
     class TaskType(models.TextChoices):
-        CALL = "call", "Звонок"
-        MEETING = "meeting", "Встреча"
-        EMAIL = "email", "Письмо"
+        CALL = "call", _("Звонок")
+        MEETING = "meeting", _("Встреча")
+        EMAIL = "email", _("Письмо")
 
     class Status(models.TextChoices):
-        OPEN = "open", "Открыта"
-        COMPLETED = "completed", "Выполнена"
+        OPEN = "open", _("Открыта")
+        COMPLETED = "completed", _("Выполнена")
 
     deal = models.ForeignKey(
         Deal,
@@ -215,7 +221,7 @@ class Task(models.Model):
         null=True,
         blank=True,
         related_name="tasks",
-        verbose_name="Сделка",
+        verbose_name=_("Сделка"),
     )
     client = models.ForeignKey(
         Client,
@@ -223,20 +229,20 @@ class Task(models.Model):
         null=True,
         blank=True,
         related_name="tasks",
-        verbose_name="Клиент",
+        verbose_name=_("Клиент"),
     )
     task_type = models.CharField(
-        "Тип задачи",
+        _("Тип задачи"),
         max_length=20,
         choices=TaskType.choices,
         default=TaskType.CALL,
         db_index=True,
     )
-    title = models.CharField("Заголовок", max_length=255)
-    description = models.TextField("Описание", blank=True)
-    deadline = models.DateTimeField("Дедлайн", db_index=True)
+    title = models.CharField(_("Заголовок"), max_length=255)
+    description = models.TextField(_("Описание"), blank=True)
+    deadline = models.DateTimeField(_("Дедлайн"), db_index=True)
     status = models.CharField(
-        "Статус",
+        _("Статус"),
         max_length=20,
         choices=Status.choices,
         default=Status.OPEN,
@@ -246,14 +252,14 @@ class Task(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
         related_name="created_tasks",
-        verbose_name="Создатель",
+        verbose_name=_("Создатель"),
     )
 
-    created_at = models.DateTimeField("Создана", auto_now_add=True)
+    created_at = models.DateTimeField(_("Создана"), auto_now_add=True)
 
     class Meta:
-        verbose_name = "Задача"
-        verbose_name_plural = "Задачи"
+        verbose_name = _("Задача")
+        verbose_name_plural = _("Задачи")
         ordering = ["deadline"]
         indexes = [
             models.Index(fields=["status", "deadline"], name="idx_task_status_deadline"),
@@ -279,14 +285,14 @@ class ActionLog(models.Model):
         null=True,
         blank=True,
         related_name="action_logs",
-        verbose_name="Пользователь",
+        verbose_name=_("Пользователь"),
     )
-    action = models.CharField("Действие", max_length=500)
-    created_at = models.DateTimeField("Дата", auto_now_add=True, db_index=True)
+    action = models.CharField(_("Действие"), max_length=500)
+    created_at = models.DateTimeField(_("Дата"), auto_now_add=True, db_index=True)
 
     class Meta:
-        verbose_name = "Запись журнала"
-        verbose_name_plural = "Журнал действий"
+        verbose_name = _("Запись журнала")
+        verbose_name_plural = _("Журнал действий")
         ordering = ["-created_at"]
 
     def __str__(self):

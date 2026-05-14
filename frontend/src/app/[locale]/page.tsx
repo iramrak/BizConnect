@@ -6,6 +6,7 @@
  * - BarChart: deals by stage (Recharts)
  * - Skeleton loader
  * - Auto-refresh on Zustand version changes
+ * - i18n via useTranslations('Dashboard')
  */
 
 "use client";
@@ -35,6 +36,7 @@ import {
   Pie,
   Legend,
 } from "recharts";
+import { useTranslations, useLocale } from "next-intl";
 import api from "@/lib/api";
 import { useCRMStore } from "@/lib/store";
 
@@ -73,6 +75,8 @@ const PIE_COLORS = ["#38bdf8", "#f59e0b", "#8b5cf6", "#f97316", "#3b82f6", "#10b
 /* ── Page ────────────────────────────────── */
 
 export default function DashboardPage() {
+  const t = useTranslations("Dashboard");
+  const locale = useLocale();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -110,10 +114,10 @@ export default function DashboardPage() {
           <div className="p-2 rounded-xl bg-violet-500/10">
             <LayoutDashboard className="w-6 h-6 text-violet-400" />
           </div>
-          Дашборд
+          {t("title")}
         </h1>
         <p className="text-slate-400 mt-1 text-sm">
-          Обзор ключевых показателей CRM
+          {t("subtitle")}
         </p>
       </div>
 
@@ -121,40 +125,44 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <MetricCard
           icon={Handshake}
-          label="Всего сделок"
+          label={t("totalDeals")}
           value={data?.total_deals}
           loading={loading}
           color="text-indigo-400"
           bg="bg-indigo-500/10"
           borderColor="border-indigo-500/20"
+          locale={locale}
         />
         <MetricCard
           icon={DollarSign}
-          label="Бюджет"
+          label={t("budget")}
           value={data?.total_revenue}
           loading={loading}
           format="money"
           color="text-emerald-400"
           bg="bg-emerald-500/10"
           borderColor="border-emerald-500/20"
+          locale={locale}
         />
         <MetricCard
           icon={Users}
-          label="Клиентов"
+          label={t("clients")}
           value={data?.total_clients}
           loading={loading}
           color="text-cyan-400"
           bg="bg-cyan-500/10"
           borderColor="border-cyan-500/20"
+          locale={locale}
         />
         <MetricCard
           icon={ListTodo}
-          label="Активные задачи"
+          label={t("activeTasks")}
           value={data?.active_tasks}
           loading={loading}
           color="text-amber-400"
           bg="bg-amber-500/10"
           borderColor="border-amber-500/20"
+          locale={locale}
         />
       </div>
 
@@ -163,19 +171,21 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <MiniStat
             icon={CheckCircle2}
-            label="Выполненных задач"
+            label={t("completedTasks")}
             value={data.completed_tasks}
             color="text-emerald-400"
+            locale={locale}
           />
           <MiniStat
             icon={AlertTriangle}
-            label="Просроченных"
+            label={t("overdueTasks")}
             value={data.overdue_tasks}
             color={data.overdue_tasks > 0 ? "text-red-400" : "text-slate-500"}
+            locale={locale}
           />
           <MiniStat
             icon={TrendingUp}
-            label="Конверсия в успех"
+            label={t("conversionRate")}
             value={
               data.total_deals > 0
                 ? `${Math.round(
@@ -186,6 +196,7 @@ export default function DashboardPage() {
                 : "—"
             }
             color="text-violet-400"
+            locale={locale}
           />
         </div>
       )}
@@ -196,7 +207,7 @@ export default function DashboardPage() {
         <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-6">
           <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
             <Handshake className="w-4 h-4 text-indigo-400" />
-            Сделки по стадиям
+            {t("dealsByStage")}
           </h2>
           {loading ? (
             <div className="flex items-center justify-center h-[300px]">
@@ -234,7 +245,7 @@ export default function DashboardPage() {
                     fontSize: "13px",
                   }}
                   cursor={{ fill: "rgba(51, 65, 85, 0.2)" }}
-                  formatter={(value: number) => [`${value}`, "Сделок"]}
+                  formatter={(value) => [`${value}`, t("dealsCount")]}
                 />
                 <Bar dataKey="value" radius={[6, 6, 0, 0]} maxBarSize={48}>
                   {data.deals_by_stage.map((entry) => (
@@ -248,7 +259,7 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-slate-500 text-sm">
-              Нет данных для отображения
+              {t("noData")}
             </div>
           )}
         </div>
@@ -257,7 +268,7 @@ export default function DashboardPage() {
         <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-6">
           <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-violet-400" />
-            Распределение воронки
+            {t("funnelDistribution")}
           </h2>
           {loading ? (
             <div className="flex items-center justify-center h-[300px]">
@@ -292,7 +303,7 @@ export default function DashboardPage() {
                     color: "#fff",
                     fontSize: "13px",
                   }}
-                  formatter={(value: number) => [`${value}`, "Сделок"]}
+                  formatter={(value) => [`${value}`, t("dealsCount")]}
                 />
                 <Legend
                   iconType="circle"
@@ -305,7 +316,7 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-[300px] text-slate-500 text-sm">
-              Нет данных для отображения
+              {t("noData")}
             </div>
           )}
         </div>
@@ -325,6 +336,7 @@ function MetricCard({
   color,
   bg,
   borderColor,
+  locale,
 }: {
   icon: React.ElementType;
   label: string;
@@ -334,13 +346,14 @@ function MetricCard({
   color: string;
   bg: string;
   borderColor: string;
+  locale: string;
 }) {
   const displayValue =
     value === undefined
       ? "—"
       : format === "money"
-        ? formatMoney(value)
-        : value.toLocaleString("ru-RU");
+        ? formatMoney(value, locale)
+        : value.toLocaleString(locale);
 
   return (
     <div
@@ -378,18 +391,20 @@ function MiniStat({
   label,
   value,
   color,
+  locale,
 }: {
   icon: React.ElementType;
   label: string;
   value: number | string;
   color: string;
+  locale: string;
 }) {
   return (
     <div className="flex items-center gap-3 bg-slate-800/20 border border-slate-700/30 rounded-xl px-4 py-3">
       <Icon className={`w-4 h-4 ${color} shrink-0`} />
       <span className="text-sm text-slate-400">{label}</span>
       <span className={`ml-auto text-sm font-semibold ${color}`}>
-        {typeof value === "number" ? value.toLocaleString("ru-RU") : value}
+        {typeof value === "number" ? value.toLocaleString(locale) : value}
       </span>
     </div>
   );
@@ -397,8 +412,8 @@ function MiniStat({
 
 /* ── Helpers ─────────────────────────────── */
 
-function formatMoney(value: number): string {
-  return new Intl.NumberFormat("ru-RU", {
+function formatMoney(value: number, locale: string): string {
+  return new Intl.NumberFormat(locale, {
     style: "decimal",
     maximumFractionDigits: 0,
   }).format(value);

@@ -1,36 +1,24 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import AuthProvider from "@/components/AuthProvider";
-import Sidebar from "@/components/Sidebar";
-import AIChatWidget from "@/components/AIChatWidget";
+/**
+ * CleanDerect CRM — Root Layout (pass-through)
+ *
+ * With next-intl [locale] routing, the root layout
+ * must NOT render <html>/<body> — that's done by
+ * app/[locale]/layout.tsx.
+ *
+ * This file only passes children through.
+ */
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin", "cyrillic"],
-});
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "CleanDerect CRM",
-  description: "CRM система для малого бизнеса",
+    title: "CleanDerect CRM",
+    description: "CRM система для малого бизнеса",
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="ru">
-      <body className={`${inter.variable} font-sans antialiased`}>
-        <AuthProvider>
-          <div className="flex h-screen bg-slate-950 text-slate-100">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto">{children}</main>
-          </div>
-          <AIChatWidget />
-        </AuthProvider>
-      </body>
-    </html>
-  );
+    return children;
 }

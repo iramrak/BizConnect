@@ -19,6 +19,8 @@ from django.conf import settings
 from django.utils.translation import get_language
 from openai import OpenAI
 
+from .models import Deal
+
 logger = logging.getLogger(__name__)
 
 # ── OpenAI client ──────────────────────────────
@@ -27,21 +29,91 @@ client = OpenAI(api_key=settings.OPENAI_API_KEY)
 MODEL = "gpt-4o-mini"
 
 
+# ── Whisper transcription ──────────────────────
+
+def transcribe_audio(audio_file, language_code: str = "ru") -> str:
+    """
+    Transcribe audio using OpenAI Whisper.
+
+    Parameters
+    ----------
+    audio_file : UploadedFile
+        Django uploaded file (wav, webm, mp3, etc.)
+    language_code : str
+        ISO-639-1 code ('ru', 'kk') — helps Whisper with accuracy.
+
+    Returns
+    -------
+    str
+        Transcribed text.
+    """
+    try:
+        transcript = client.audio.transcriptions.create(
+            model="whisper-1",
+            file=(audio_file.name, audio_file.read()),
+            language=language_code,
+        )
+        return transcript.text
+    except Exception as exc:
+        logger.exception("Whisper transcription error")
+        raise exc
+
+
 # ── Dynamic System Prompt ──────────────────────
 
-def _build_system_prompt() -> str:
+def _build_system_prompt(user=None) -> str:
     """
     Build the system prompt for the AI assistant.
 
     Uses Django's get_language() to determine the current UI language
     (set by LocaleMiddleware from the Accept-Language header) and
     instructs the model to respond strictly in that language.
+
+    If `user` is provided, injects a list of active deals so the AI
+    can resolve deal IDs automatically without asking the user.
     """
     current_lang = get_language() or "ru"
     lang_name = "Kazakh" if current_lang == "kk" else "Russian"
     lang_native = "қазақ тілінде" if current_lang == "kk" else "на русском языке"
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    # ── Build deals context for the user ──
+    deals_context = ""
+    if user:
+        try:
+            qs = Deal.objects.exclude(
+                stage__in=["closed_won", "closed_lost"]
+            ).select_related("client")
+            if user.role == "manager":
+                qs = qs.filter(manager=user)
+            deals = qs.order_by("-created_at")[:30]
+            if deals:
+                lines = []
+                for d in deals:
+                    client_name = (
+                        f"{d.client.first_name} {d.client.last_name}".strip()
+                        if d.client else "—"
+                    )
+                    lines.append(
+                        f"[ID: {d.id}] {d.title} | {d.amount} {d.currency} "
+                        f"| stage: {d.stage} | client: {client_name}"
+                    )
+                deals_context = "\n".join(lines)
+        except Exception:
+            logger.exception("Failed to build deals context")
+
+    deals_block = ""
+    if deals_context:
+        deals_block = f"""
+
+ACTIVE DEALS FOR THIS USER:
+{deals_context}
+
+When the user asks to update a deal by name, use this list to find the
+correct deal_id for your function call. DO NOT ask the user for the ID —
+match the deal by its title. If there is ambiguity, show the user the
+matching options and ask them to confirm."""
 
     return f"""You are an AI assistant built into the CleanDerect CRM system.
 You help sales managers: answer questions, suggest actions, and propose
@@ -84,7 +156,7 @@ human_description) MUST be written in {lang_name}.
 
 Current server date/time: {now}.
 Use this for computing relative dates (tomorrow, next week, etc.).
-"""
+{deals_block}"""
 
 
 # ── Tool definition (function calling) ─────────
@@ -230,12 +302,14 @@ TOOLS = [
 def chat_with_ai(
     user_message: str,
     conversation_history: list[dict] | None = None,
+    user=None,
 ) -> dict:
     """
     Send a message to OpenAI and return a structured response.
 
     The system prompt is built dynamically based on the current locale
-    (from Django's LocaleMiddleware / Accept-Language header).
+    (from Django's LocaleMiddleware / Accept-Language header) and
+    includes contextual data (active deals) when `user` is provided.
 
     Returns
     -------
@@ -246,8 +320,8 @@ def chat_with_ai(
         }
     """
 
-    # Build system prompt with current locale
-    system_prompt = _build_system_prompt()
+    # Build system prompt with current locale + user context
+    system_prompt = _build_system_prompt(user=user)
 
     messages = [{
         "role": "system",

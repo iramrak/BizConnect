@@ -5,11 +5,12 @@
  * - Sends messages to POST /api/ai/chat/
  * - Renders proposed CRM actions as interactive cards
  * - "Apply" executes the action via the relevant API endpoint
+ * - Voice input via Whisper STT (POST /api/ai/transcribe/)
  */
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import {
     Bot,
@@ -20,10 +21,13 @@ import {
     XCircle,
     Sparkles,
     ChevronDown,
+    Mic,
+    Square,
 } from "lucide-react";
 import api from "@/lib/api";
 import { useCRMStore } from "@/lib/store";
 import { useTranslations } from "next-intl";
+import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 
 /* ── Types ─────────────────────────────────── */
 
@@ -56,9 +60,64 @@ export default function AIChatWidget() {
     ]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [transcribing, setTranscribing] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const nextId = useRef(1);
+
+    // Voice recording
+    const {
+        isRecording,
+        recordingTime,
+        audioBlob,
+        error: micError,
+        startRecording,
+        stopRecording,
+    } = useAudioRecorder();
+
+    // Format seconds → MM:SS
+    const formatTime = (seconds: number) => {
+        const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+        const s = (seconds % 60).toString().padStart(2, "0");
+        return `${m}:${s}`;
+    };
+
+    // Transcribe audio blob when recording stops
+    const handleTranscribe = useCallback(async (blob: Blob) => {
+        setTranscribing(true);
+        try {
+            const formData = new FormData();
+            formData.append("audio", blob, "recording.webm");
+            const res = await api.post<{ text: string }>("/ai/transcribe/", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+            if (res.data.text) {
+                setInput((prev) => (prev ? prev + " " + res.data.text : res.data.text));
+                inputRef.current?.focus();
+            }
+        } catch (err) {
+            console.error("Transcription failed:", err);
+            addMessage({ role: "system", text: t("transcribeError") });
+        } finally {
+            setTranscribing(false);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [t]);
+
+    // When audioBlob appears (after stopRecording), send to Whisper
+    useEffect(() => {
+        if (audioBlob) {
+            handleTranscribe(audioBlob);
+        }
+    }, [audioBlob, handleTranscribe]);
+
+    // Show mic error as system message
+    useEffect(() => {
+        if (micError) {
+            addMessage({ role: "system", text: t("micUnavailable") });
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [micError]);
 
     // Don't render for unauthenticated users
     if (!session) return null;
@@ -258,31 +317,68 @@ export default function AIChatWidget() {
 
                     {/* Input */}
                     <div className="px-4 py-3 border-t border-slate-700/50 bg-slate-800/30">
-                        <form
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                                handleSend();
-                            }}
-                            className="flex items-center gap-2"
-                        >
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                placeholder={t("placeholder")}
-                                disabled={loading}
-                                className="flex-1 bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all disabled:opacity-50"
-                            />
-                            <button
-                                type="submit"
-                                disabled={loading || !input.trim()}
-                                className="p-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl transition-colors"
-                                title={t("send")}
+                        {isRecording ? (
+                            /* ── Recording state ── */
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1 flex items-center gap-3 bg-slate-800/60 border border-red-500/30 rounded-xl px-4 py-2.5">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                                    <span className="text-sm text-red-400 font-mono">
+                                        {formatTime(recordingTime)}
+                                    </span>
+                                    <span className="text-xs text-slate-500">
+                                        {t("recording")}
+                                    </span>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={stopRecording}
+                                    className="p-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-colors"
+                                    title={t("stopRecording")}
+                                >
+                                    <Square className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            /* ── Normal input state ── */
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleSend();
+                                }}
+                                className="flex items-center gap-2"
                             >
-                                <Send className="w-4 h-4" />
-                            </button>
-                        </form>
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={input}
+                                    onChange={(e) => setInput(e.target.value)}
+                                    placeholder={transcribing ? t("transcribing") : t("placeholder")}
+                                    disabled={loading || transcribing}
+                                    className="flex-1 bg-slate-800/60 border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40 transition-all disabled:opacity-50"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={startRecording}
+                                    disabled={loading || transcribing}
+                                    className="p-2.5 text-slate-400 hover:text-white hover:bg-slate-700/60 disabled:opacity-30 rounded-xl transition-colors"
+                                    title={t("voiceInput")}
+                                >
+                                    {transcribing ? (
+                                        <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                                    ) : (
+                                        <Mic className="w-4 h-4" />
+                                    )}
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading || transcribing || !input.trim()}
+                                    className="p-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl transition-colors"
+                                    title={t("send")}
+                                >
+                                    <Send className="w-4 h-4" />
+                                </button>
+                            </form>
+                        )}
                     </div>
                 </div>
             )}

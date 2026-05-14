@@ -221,9 +221,47 @@ class AIChatView(APIView):
         result = chat_with_ai(
             user_message=message,
             conversation_history=history,
+            user=request.user,
         )
 
         return Response(result, status=status.HTTP_200_OK)
+
+
+# ───────────────────────────────────────
+# AI Transcribe (Whisper STT)
+# ───────────────────────────────────────
+
+class AITranscribeView(APIView):
+    """
+    POST /api/ai/transcribe/
+    Body: multipart/form-data with 'audio' file
+    Header: Accept-Language → passed to Whisper for accuracy
+    Response: { "text": "transcribed text" }
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        audio_file = request.FILES.get("audio")
+        if not audio_file:
+            return Response(
+                {"error": "Audio file is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Use Accept-Language header for Whisper language hint
+        language = request.LANGUAGE_CODE or "ru"
+
+        from .ai_service import transcribe_audio
+
+        try:
+            text = transcribe_audio(audio_file, language_code=language)
+            return Response({"text": text}, status=status.HTTP_200_OK)
+        except Exception:
+            return Response(
+                {"error": "Transcription failed."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 # ───────────────────────────────────────

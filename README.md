@@ -1,4 +1,4 @@
-# 🚀 CleanDerect CRM - AI-Powered Business Management System
+# 🚀 BizConnect CRM - AI-Powered Business Management System
 
 Современная гибридная CRM-система, объединяющая классический реактивный интерфейс и продвинутого AI-ассистента. Разработана для автоматизации управления клиентами, сделками и задачами.
 

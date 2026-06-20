@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Clients Page
+ * BizConnect CRM — Clients Page
  * i18n via useTranslations('Clients')
  */
 

@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Sidebar Navigation
+ * BizConnect CRM — Sidebar Navigation
  *
  * Features:
  * - Locale-aware links via next-intl navigation
@@ -56,10 +56,10 @@ export default function Sidebar() {
                 {!collapsed && (
                     <Link href="/" className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
-                            <span className="text-white font-bold text-sm">CD</span>
+                            <span className="text-white font-bold text-sm">BC</span>
                         </div>
                         <span className="text-white font-semibold text-lg tracking-tight">
-                            CleanDerect
+                            BizConnect
                         </span>
                     </Link>
                 )}

@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Locale-aware Navigation
+ * BizConnect CRM — Locale-aware Navigation
  *
  * Re-exports Link, redirect, usePathname, useRouter
  * that automatically handle locale prefixes.

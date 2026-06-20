@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Language Switcher
+ * BizConnect CRM — Language Switcher
  *
  * Toggles between RU and KK locales.
  * - Uses next-intl navigation (useRouter + usePathname) for locale change

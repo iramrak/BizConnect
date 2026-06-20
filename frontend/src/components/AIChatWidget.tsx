@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — AI Chat Widget
+ * BizConnect CRM — AI Chat Widget
  *
  * Floating chat with OpenAI-powered assistant.
  * - Sends messages to POST /api/ai/chat/

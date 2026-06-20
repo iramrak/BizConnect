@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — NextAuth Configuration
+ * BizConnect CRM — NextAuth Configuration
  *
  * CredentialsProvider → Django JWT (/api/token/)
  * JWT & Session callbacks pass accessToken + user role to client.
@@ -11,7 +11,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 export const authOptions: AuthOptions = {
     providers: [
         CredentialsProvider({
-            name: "CleanDerect",
+            name: "BizConnect",
             credentials: {
                 email: { label: "Email", type: "email", placeholder: "user@example.com" },
                 password: { label: "Пароль", type: "password" },

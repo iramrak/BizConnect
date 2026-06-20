@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — i18n Request Configuration
+ * BizConnect CRM — i18n Request Configuration
  *
  * Server-side config: resolves the locale from the request
  * and dynamically imports the correct message dictionary.

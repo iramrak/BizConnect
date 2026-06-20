@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — i18n Routing Configuration
+ * BizConnect CRM — i18n Routing Configuration
  *
  * Defines supported locales and prefix strategy.
  * 'as-needed' = no prefix for default locale (ru),

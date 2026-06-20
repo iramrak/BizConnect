@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Locale Layout
+ * BizConnect CRM — Locale Layout
  *
  * This is the main layout for all localized pages.
  * Wraps children with:

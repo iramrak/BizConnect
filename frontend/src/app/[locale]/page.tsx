@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Dashboard
+ * BizConnect CRM — Dashboard
  *
  * Features:
  * - Metric cards: total deals, revenue, clients, active tasks

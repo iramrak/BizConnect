@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — NextAuth Session Provider (client)
+ * BizConnect CRM — NextAuth Session Provider (client)
  *
  * Wraps the app so useSession() works in all client components.
  */

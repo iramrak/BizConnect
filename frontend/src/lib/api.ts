@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Axios API Client
+ * BizConnect CRM — Axios API Client
  *
  * Base instance targeting Django backend.
  * Automatically attaches:

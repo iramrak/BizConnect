@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Deals Kanban Board
+ * BizConnect CRM — Deals Kanban Board
  *
  * Features:
  * - Drag & Drop with @hello-pangea/dnd

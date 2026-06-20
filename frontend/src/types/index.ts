@@ -1,5 +1,5 @@
 /* ──────────────────────────────────────────────
-   CleanDerect CRM — TypeScript Interfaces
+   BizConnect CRM — TypeScript Interfaces
    Mirrors Django models + DRF serializer output
    ────────────────────────────────────────────── */
 

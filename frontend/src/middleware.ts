@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Middleware (next-auth + next-intl)
+ * BizConnect CRM — Middleware (next-auth + next-intl)
  *
  * Combines two concerns:
  * 1. next-intl  — locale detection, redirects, URL rewrites

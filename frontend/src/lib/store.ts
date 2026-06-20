@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Global Store (Zustand)
+ * BizConnect CRM — Global Store (Zustand)
  *
  * Tracks:
  * - "last updated" version counters for auto-refresh across pages

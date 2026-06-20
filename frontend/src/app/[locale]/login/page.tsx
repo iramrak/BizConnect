@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Login Page
+ * BizConnect CRM — Login Page
  */
 
 "use client";
@@ -50,7 +50,7 @@ function LoginForm() {
                         <LogIn className="w-8 h-8 text-white" />
                     </div>
                     <h1 className="text-3xl font-bold text-white tracking-tight">
-                        CleanDerect
+                        BizConnect
                     </h1>
                     <p className="text-slate-400 mt-1">CRM для вашего бизнеса</p>
                 </div>
@@ -118,7 +118,7 @@ function LoginForm() {
                 </div>
 
                 <p className="text-center text-slate-500 text-sm mt-6">
-                    © 2026 CleanDerect CRM
+                    © 2026 BizConnect CRM
                 </p>
             </div>
         </div>

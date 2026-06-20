@@ -1,5 +1,5 @@
 /**
- * CleanDerect CRM — Tasks Page ("Мои дела")
+ * BizConnect CRM — Tasks Page ("Мои дела")
  *
  * Features:
  * - Tabs: All / Today / Overdue / Completed

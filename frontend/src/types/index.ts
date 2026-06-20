@@ -1,10 +1,3 @@
-/* ──────────────────────────────────────────────
-   BizConnect CRM — TypeScript Interfaces
-   Mirrors Django models + DRF serializer output
-   ────────────────────────────────────────────── */
-
-// ── Enums ────────────────────────────────────
-
 export type UserRole = "admin" | "manager" | "head";
 
 export type DealStage =
@@ -22,8 +15,6 @@ export type TaskType = "call" | "meeting" | "email";
 
 export type TaskStatus = "open" | "completed";
 
-// ── Short (nested) representations ───────────
-
 export interface UserShort {
   id: number;
   email: string;
@@ -38,8 +29,6 @@ export interface ClientShort {
   last_name: string;
   phone: string;
 }
-
-// ── Full entities ────────────────────────────
 
 export interface User {
   id: number;
@@ -67,7 +56,7 @@ export interface Deal {
   id: number;
   title: string;
   client: ClientShort;
-  amount: string; // Decimal comes as string from DRF
+  amount: string;
   currency: DealCurrency;
   currency_display: string;
   stage: DealStage;
@@ -101,7 +90,7 @@ export interface ActionLog {
   created_at: string;
 }
 
-// ── API response wrappers ────────────────────
+//API response wrappers
 
 export interface PaginatedResponse<T> {
   count: number;
@@ -110,7 +99,7 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
-// ── Auth types ───────────────────────────────
+//Auth types 
 
 export interface TokenPair {
   access: string;

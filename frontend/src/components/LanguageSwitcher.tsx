@@ -1,12 +1,3 @@
-/**
- * BizConnect CRM — Language Switcher
- *
- * Toggles between RU and KK locales.
- * - Uses next-intl navigation (useRouter + usePathname) for locale change
- * - Syncs locale into Zustand store for API consumers (e.g. AI chat)
- * - Glassmorphic pill design to match dark CRM theme
- */
-
 "use client";
 
 import { useLocale } from "next-intl";
@@ -32,7 +23,6 @@ export default function LanguageSwitcher({ collapsed = false }: { collapsed?: bo
     const pathname = usePathname();
     const setLocale = useCRMStore((s) => s.setLocale);
 
-    // Sync locale to Zustand on mount and when locale changes
     useEffect(() => {
         setLocale(currentLocale);
     }, [currentLocale, setLocale]);
@@ -40,14 +30,11 @@ export default function LanguageSwitcher({ collapsed = false }: { collapsed?: bo
     const handleSwitch = (newLocale: string) => {
         if (newLocale === currentLocale) return;
 
-        // Navigate to the same path but with the new locale
         router.replace(pathname, { locale: newLocale });
 
-        // Optimistically sync Zustand
         setLocale(newLocale);
     };
 
-    // Collapsed sidebar — show only globe icon + current locale
     if (collapsed) {
         const next = LOCALES.find((l) => l.code !== currentLocale) ?? LOCALES[0];
         return (
@@ -64,7 +51,6 @@ export default function LanguageSwitcher({ collapsed = false }: { collapsed?: bo
         );
     }
 
-    // Expanded sidebar — pill toggle
     return (
         <div className="flex items-center gap-2 px-1">
             <Globe className="w-4 h-4 text-slate-500 shrink-0" />

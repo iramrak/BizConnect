@@ -1,10 +1,3 @@
-/**
- * CreateDealModal — modal for creating a new deal
- *
- * Fields: title, client_name, client_phone, amount, currency, expected_close_date
- * Sends POST /deals/ then calls onCreated() callback.
- */
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -30,7 +23,6 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
     const [currency, setCurrency] = useState("KZT");
     const [expectedCloseDate, setExpectedCloseDate] = useState("");
 
-    // Close on Escape
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
@@ -74,19 +66,16 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
 
     return (
         <>
-            {/* Backdrop */}
             <div
                 className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
                 onClick={onClose}
             />
 
-            {/* Panel */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div
                     className="w-full max-w-lg bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/50 animate-in fade-in zoom-in-95 duration-200"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {/* Header */}
                     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700/40">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-xl bg-indigo-500/10">
@@ -105,9 +94,7 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                         </button>
                     </div>
 
-                    {/* Form */}
                     <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-                        {/* Title */}
                         <div>
                             <label className={labelCls}>
                                 {t("dealTitle")} <span className="text-red-400">*</span>
@@ -122,7 +109,6 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                             />
                         </div>
 
-                        {/* Client Name + Phone */}
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className={labelCls}>{t("clientName")}</label>
@@ -146,7 +132,6 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                             </div>
                         </div>
 
-                        {/* Amount + Currency */}
                         <div className="grid grid-cols-3 gap-3">
                             <div className="col-span-2">
                                 <label className={labelCls}>{t("amount")}</label>
@@ -176,7 +161,6 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                             </div>
                         </div>
 
-                        {/* Expected Close Date */}
                         <div>
                             <label className={labelCls}>
                                 {t("expectedCloseDate")}
@@ -190,14 +174,12 @@ export default function CreateDealModal({ onClose, onCreated }: Props) {
                             />
                         </div>
 
-                        {/* Error */}
                         {error && (
                             <p className="text-red-400 text-sm bg-red-400/10 px-3 py-2 rounded-lg">
                                 {error}
                             </p>
                         )}
 
-                        {/* Actions */}
                         <div className="flex justify-end gap-3 pt-2">
                             <button
                                 type="button"

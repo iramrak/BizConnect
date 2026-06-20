@@ -1,14 +1,3 @@
-/**
- * BizConnect CRM — Dashboard
- *
- * Features:
- * - Metric cards: total deals, revenue, clients, active tasks
- * - BarChart: deals by stage (Recharts)
- * - Skeleton loader
- * - Auto-refresh on Zustand version changes
- * - i18n via useTranslations('Dashboard')
- */
-
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -40,8 +29,6 @@ import { useTranslations, useLocale } from "next-intl";
 import api from "@/lib/api";
 import { useCRMStore } from "@/lib/store";
 
-/* ── Types ───────────────────────────────── */
-
 interface StageData {
   name: string;
   key: string;
@@ -58,8 +45,6 @@ interface DashboardData {
   overdue_tasks: number;
 }
 
-/* ── Stage colors ────────────────────────── */
-
 const STAGE_COLORS: Record<string, string> = {
   new: "#38bdf8",
   in_progress: "#f59e0b",
@@ -71,8 +56,6 @@ const STAGE_COLORS: Record<string, string> = {
 };
 
 const PIE_COLORS = ["#38bdf8", "#f59e0b", "#8b5cf6", "#f97316", "#3b82f6", "#10b981", "#ef4444"];
-
-/* ── Page ────────────────────────────────── */
 
 export default function DashboardPage() {
   const t = useTranslations("Dashboard");
@@ -96,7 +79,6 @@ export default function DashboardPage() {
     fetchDashboard();
   }, [fetchDashboard]);
 
-  // Auto-refresh when deals/tasks/clients change
   const dealsVersion = useCRMStore((s) => s.dealsVersion);
   const tasksVersion = useCRMStore((s) => s.tasksVersion);
   const clientsVersion = useCRMStore((s) => s.clientsVersion);
@@ -108,7 +90,6 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-7xl mx-auto">
-      {/* ── Header ─────────────────────────── */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white flex items-center gap-3">
           <div className="p-2 rounded-xl bg-violet-500/10">
@@ -121,7 +102,6 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* ── Metric Cards ───────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <MetricCard
           icon={Handshake}
@@ -166,7 +146,6 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* ── Sub-stats ──────────────────────── */}
       {data && !loading && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <MiniStat
@@ -201,9 +180,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Charts ─────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bar Chart */}
         <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-6">
           <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
             <Handshake className="w-4 h-4 text-indigo-400" />
@@ -264,7 +241,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Pie Chart */}
         <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl p-6">
           <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-violet-400" />
@@ -325,8 +301,6 @@ export default function DashboardPage() {
   );
 }
 
-/* ── MetricCard ──────────────────────────── */
-
 function MetricCard({
   icon: Icon,
   label,
@@ -384,8 +358,6 @@ function MetricCard({
   );
 }
 
-/* ── MiniStat ────────────────────────────── */
-
 function MiniStat({
   icon: Icon,
   label,
@@ -409,8 +381,6 @@ function MiniStat({
     </div>
   );
 }
-
-/* ── Helpers ─────────────────────────────── */
 
 function formatMoney(value: number, locale: string): string {
   return new Intl.NumberFormat(locale, {

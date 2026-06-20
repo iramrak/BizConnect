@@ -1,8 +1,3 @@
-/**
- * BizConnect CRM — Clients Page
- * i18n via useTranslations('Clients')
- */
-
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -53,7 +48,6 @@ export default function ClientsPage() {
 
     useEffect(() => { fetchClients(""); }, [fetchClients]);
 
-    // Auto-refresh when AI (or modal) creates a client
     const clientsVersion = useCRMStore((s) => s.clientsVersion);
     useEffect(() => {
         if (clientsVersion > 0) fetchClients(search);

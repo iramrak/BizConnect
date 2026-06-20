@@ -1,26 +1,13 @@
-/**
- * useAudioRecorder — custom hook for browser audio recording
- *
- * Uses MediaRecorder API to capture audio from the microphone.
- * Returns controls and state for recording UI.
- */
-
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
 
 interface UseAudioRecorderReturn {
-    /** Whether the browser is currently recording */
     isRecording: boolean;
-    /** Elapsed recording time in seconds */
     recordingTime: number;
-    /** Start recording from the microphone */
     startRecording: () => Promise<void>;
-    /** Stop recording and return the audio Blob */
     stopRecording: () => void;
-    /** The recorded audio blob (available after stop) */
     audioBlob: Blob | null;
-    /** Error message (e.g. mic unavailable) */
     error: string | null;
 }
 
@@ -35,7 +22,6 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
 
-    // Cleanup on unmount
     useEffect(() => {
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
@@ -56,7 +42,6 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
             });
             streamRef.current = stream;
 
-            // Prefer webm/opus; fallback to whatever browser supports
             const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
                 ? "audio/webm;codecs=opus"
                 : "audio/webm";
@@ -74,11 +59,9 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
                 const blob = new Blob(chunksRef.current, { type: mimeType });
                 setAudioBlob(blob);
 
-                // Stop all tracks
                 stream.getTracks().forEach((t) => t.stop());
                 streamRef.current = null;
 
-                // Stop timer
                 if (timerRef.current) {
                     clearInterval(timerRef.current);
                     timerRef.current = null;
@@ -89,7 +72,6 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
             setIsRecording(true);
             setRecordingTime(0);
 
-            // Start elapsed timer
             timerRef.current = setInterval(() => {
                 setRecordingTime((prev) => prev + 1);
             }, 1000);

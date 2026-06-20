@@ -1,7 +1,3 @@
-/**
- * BizConnect CRM — Login Page
- */
-
 "use client";
 
 import { signIn } from "next-auth/react";
@@ -44,7 +40,6 @@ function LoginForm() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
             <div className="w-full max-w-md mx-4">
-                {/* Logo / Brand */}
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/25 mb-4">
                         <LogIn className="w-8 h-8 text-white" />
@@ -55,7 +50,6 @@ function LoginForm() {
                     <p className="text-slate-400 mt-1">CRM для вашего бизнеса</p>
                 </div>
 
-                {/* Card */}
                 <div className="bg-slate-800/50 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-8 shadow-2xl">
                     <h2 className="text-xl font-semibold text-white mb-6">Вход в систему</h2>
 

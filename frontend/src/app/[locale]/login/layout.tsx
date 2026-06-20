@@ -1,7 +1,3 @@
-/**
- * Login page layout — no sidebar, standalone full-screen view.
- */
-
 export default function LoginLayout({
     children,
 }: {

@@ -1,10 +1,3 @@
-/**
- * BizConnect CRM — NextAuth Configuration
- *
- * CredentialsProvider → Django JWT (/api/token/)
- * JWT & Session callbacks pass accessToken + user role to client.
- */
-
 import NextAuth, { type AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
@@ -21,7 +14,7 @@ export const authOptions: AuthOptions = {
                 if (!credentials?.email || !credentials?.password) return null;
 
                 try {
-                    // 1. Obtain JWT tokens from Django
+
                     const tokenRes = await fetch("http://localhost:8000/api/token/", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
@@ -35,7 +28,6 @@ export const authOptions: AuthOptions = {
 
                     const tokens = await tokenRes.json();
 
-                    // 2. Fetch user profile with the access token
                     const userRes = await fetch("http://localhost:8000/api/users/", {
                         headers: {
                             Authorization: `Bearer ${tokens.access}`,
@@ -46,7 +38,7 @@ export const authOptions: AuthOptions = {
                     if (!userRes.ok) return null;
 
                     const usersData = await userRes.json();
-                    // Find current user by email in the paginated response
+
                     const users = usersData.results || usersData;
                     const me = Array.isArray(users)
                         ? users.find((u: { email: string }) => u.email === credentials.email)
@@ -54,7 +46,6 @@ export const authOptions: AuthOptions = {
 
                     if (!me) return null;
 
-                    // 3. Return user object for NextAuth
                     return {
                         id: String(me.id),
                         email: me.email,
@@ -72,7 +63,7 @@ export const authOptions: AuthOptions = {
 
     session: {
         strategy: "jwt",
-        maxAge: 60 * 60, // 1 hour — matches Django access token lifetime
+        maxAge: 60 * 60,
     },
 
     pages: {
@@ -81,7 +72,7 @@ export const authOptions: AuthOptions = {
 
     callbacks: {
         async jwt({ token, user }) {
-            // On first sign-in, persist tokens + role into JWT
+
             if (user) {
                 token.accessToken = user.accessToken;
                 token.refreshToken = user.refreshToken;
@@ -92,7 +83,7 @@ export const authOptions: AuthOptions = {
         },
 
         async session({ session, token }) {
-            // Expose custom fields to the client via useSession()
+
             session.accessToken = token.accessToken as string;
             session.user = {
                 ...session.user,

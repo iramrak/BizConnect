@@ -1,11 +1,3 @@
-/**
- * CreateTaskModal — modal for creating a new task
- *
- * Uses react-datepicker for a beautiful date/time picker.
- * Fields: title, description, task_type, deadline (via DatePicker)
- * Sends POST /tasks/ then calls onCreated() callback.
- */
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -31,7 +23,6 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
     const [taskType, setTaskType] = useState("call");
     const [deadline, setDeadline] = useState<Date | null>(null);
 
-    // Close on Escape
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
@@ -77,19 +68,16 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
 
     return (
         <>
-            {/* Backdrop */}
             <div
                 className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
                 onClick={onClose}
             />
 
-            {/* Panel */}
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                 <div
                     className="w-full max-w-lg bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl shadow-black/50 animate-in fade-in zoom-in-95 duration-200"
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {/* Header */}
                     <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700/40">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-xl bg-emerald-500/10">
@@ -108,9 +96,7 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                         </button>
                     </div>
 
-                    {/* Form */}
                     <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-                        {/* Title */}
                         <div>
                             <label className={labelCls}>
                                 {t("taskTitle")} <span className="text-red-400">*</span>
@@ -125,7 +111,6 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                             />
                         </div>
 
-                        {/* Description */}
                         <div>
                             <label className={labelCls}>{t("description")}</label>
                             <textarea
@@ -137,7 +122,6 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                             />
                         </div>
 
-                        {/* Type + Deadline */}
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label className={labelCls}>{t("taskType")}</label>
@@ -171,14 +155,12 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                             </div>
                         </div>
 
-                        {/* Error */}
                         {error && (
                             <p className="text-red-400 text-sm bg-red-400/10 px-3 py-2 rounded-lg">
                                 {error}
                             </p>
                         )}
 
-                        {/* Actions */}
                         <div className="flex justify-end gap-3 pt-2">
                             <button
                                 type="button"
@@ -200,7 +182,6 @@ export default function CreateTaskModal({ onClose, onCreated }: Props) {
                 </div>
             </div>
 
-            {/* Custom DatePicker styles for dark theme */}
             <style jsx global>{`
                 .react-datepicker {
                     background-color: #1e293b !important;

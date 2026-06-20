@@ -1,14 +1,3 @@
-/**
- * BizConnect CRM — Tasks Page ("Мои дела")
- *
- * Features:
- * - Tabs: All / Today / Overdue / Completed
- * - Task-type icons (Call, Meeting, Email)
- * - Checkbox toggle → PATCH status with optimistic update
- * - Overdue deadline highlighted in red
- * - Related deal & client badges
- */
-
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -33,8 +22,6 @@ import { useCRMStore } from "@/lib/store";
 import type { Task, PaginatedResponse } from "@/types";
 import CreateTaskModal from "@/components/CreateTaskModal";
 
-/* ── Tabs ──────────────────────────────────── */
-
 type TabKey = "all" | "today" | "overdue" | "completed";
 
 const TAB_KEYS: TabKey[] = ["all", "today", "overdue", "completed"];
@@ -53,15 +40,11 @@ const TAB_COLORS: Record<TabKey, string> = {
     completed: "text-emerald-400",
 };
 
-/* ── Task type config ─────────────────────── */
-
 const TASK_TYPE_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
     call: { icon: Phone, color: "text-sky-400", bg: "bg-sky-400/10" },
     meeting: { icon: CalendarDays, color: "text-violet-400", bg: "bg-violet-400/10" },
     email: { icon: Mail, color: "text-amber-400", bg: "bg-amber-400/10" },
 };
-
-/* ── Helpers ───────────────────────────────── */
 
 function todayStr(): string {
     return new Date().toISOString().slice(0, 10);
@@ -98,8 +81,6 @@ function filterTasks(tasks: Task[], tab: TabKey): Task[] {
     }
 }
 
-/* ── Page ──────────────────────────────────── */
-
 export default function TasksPage() {
     const t = useTranslations("Tasks");
     const tCommon = useTranslations("Common");
@@ -127,7 +108,6 @@ export default function TasksPage() {
 
     useEffect(() => { fetchTasks(); }, [fetchTasks]);
 
-    // Auto-refresh when AI (or other component) creates/updates a task
     const tasksVersion = useCRMStore((s) => s.tasksVersion);
     useEffect(() => {
         if (tasksVersion > 0) fetchTasks();
@@ -137,7 +117,6 @@ export default function TasksPage() {
         const newStatus = task.status === "completed" ? "open" : "completed";
         setTogglingId(task.id);
 
-        // Optimistic update
         setTasks((prev) =>
             prev.map((t) => (t.id === task.id ? { ...t, status: newStatus as Task["status"] } : t))
         );
@@ -146,7 +125,7 @@ export default function TasksPage() {
             await api.patch(`/tasks/${task.id}/`, { status: newStatus });
         } catch (err) {
             console.error("Failed to toggle task:", err);
-            fetchTasks(); // revert
+            fetchTasks();
         } finally {
             setTogglingId(null);
         }
@@ -168,7 +147,6 @@ export default function TasksPage() {
 
     return (
         <div className="p-6 lg:p-8 max-w-5xl mx-auto">
-            {/* ── Header ─────────────────────────── */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                 <div>
                     <h1 className="text-2xl font-bold text-white flex items-center gap-3">
@@ -195,7 +173,6 @@ export default function TasksPage() {
                 </button>
             </div>
 
-            {/* ── Tabs ───────────────────────────── */}
             <div className="flex gap-1 bg-slate-800/40 border border-slate-700/40 p-1 rounded-xl mb-6 overflow-x-auto">
                 {TAB_KEYS.map((tabKey) => {
                     const TabIcon = TAB_ICONS[tabKey];
@@ -235,7 +212,6 @@ export default function TasksPage() {
                 })}
             </div>
 
-            {/* ── Task List ──────────────────────── */}
             <div className="bg-slate-800/30 border border-slate-700/40 rounded-2xl overflow-hidden divide-y divide-slate-700/30">
                 {loading ? (
                     Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
@@ -276,8 +252,6 @@ export default function TasksPage() {
     );
 }
 
-/* ── Task Row ──────────────────────────────── */
-
 function TaskRow({
     task,
     toggling,
@@ -308,7 +282,6 @@ function TaskRow({
             className={`flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-slate-700/15 group ${completed ? "opacity-60" : ""
                 }`}
         >
-            {/* Checkbox */}
             <button
                 onClick={() => onToggle(task)}
                 disabled={toggling}
@@ -323,12 +296,10 @@ function TaskRow({
                 )}
             </button>
 
-            {/* Type icon */}
             <div className={`w-8 h-8 rounded-lg ${typeConfig.bg} flex items-center justify-center shrink-0`}>
                 <TypeIcon className={`w-4 h-4 ${typeConfig.color}`} />
             </div>
 
-            {/* Content */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <span
@@ -339,7 +310,6 @@ function TaskRow({
                     </span>
                 </div>
 
-                {/* Badges — deal + client */}
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
                     {dealTitle && (
                         <span className="inline-flex items-center gap-1 text-xs text-indigo-400 bg-indigo-400/10 px-2 py-0.5 rounded-md">
@@ -356,7 +326,6 @@ function TaskRow({
                 </div>
             </div>
 
-            {/* Deadline */}
             {task.deadline && (
                 <div
                     className={`flex items-center gap-1.5 text-xs shrink-0 ${overdue
@@ -375,7 +344,6 @@ function TaskRow({
                 </div>
             )}
 
-            {/* Delete */}
             <button
                 onClick={() => onDelete(task.id, task.title)}
                 className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100 shrink-0"
@@ -386,8 +354,6 @@ function TaskRow({
         </div>
     );
 }
-
-/* ── Skeleton Row ──────────────────────────── */
 
 function SkeletonRow() {
     return (

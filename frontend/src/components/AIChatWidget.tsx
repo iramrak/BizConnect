@@ -1,13 +1,3 @@
-/**
- * BizConnect CRM — AI Chat Widget
- *
- * Floating chat with OpenAI-powered assistant.
- * - Sends messages to POST /api/ai/chat/
- * - Renders proposed CRM actions as interactive cards
- * - "Apply" executes the action via the relevant API endpoint
- * - Voice input via Whisper STT (POST /api/ai/transcribe/)
- */
-
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -29,8 +19,6 @@ import { useCRMStore } from "@/lib/store";
 import { useTranslations } from "next-intl";
 import { useAudioRecorder } from "@/hooks/useAudioRecorder";
 
-/* ── Types ─────────────────────────────────── */
-
 interface ProposedAction {
     action_type: "create_task" | "create_deal" | "update_deal" | "create_client";
     payload: Record<string, unknown>;
@@ -44,8 +32,6 @@ interface ChatMessage {
     proposedAction?: ProposedAction;
     actionStatus?: "pending" | "applied" | "cancelled" | "error";
 }
-
-/* ── Component ─────────────────────────────── */
 
 export default function AIChatWidget() {
     const { data: session } = useSession();
@@ -65,7 +51,6 @@ export default function AIChatWidget() {
     const inputRef = useRef<HTMLInputElement>(null);
     const nextId = useRef(1);
 
-    // Voice recording
     const {
         isRecording,
         recordingTime,
@@ -75,14 +60,12 @@ export default function AIChatWidget() {
         stopRecording,
     } = useAudioRecorder();
 
-    // Format seconds → MM:SS
     const formatTime = (seconds: number) => {
         const m = Math.floor(seconds / 60).toString().padStart(2, "0");
         const s = (seconds % 60).toString().padStart(2, "0");
         return `${m}:${s}`;
     };
 
-    // Transcribe audio blob when recording stops
     const handleTranscribe = useCallback(async (blob: Blob) => {
         setTranscribing(true);
         try {
@@ -101,25 +84,22 @@ export default function AIChatWidget() {
         } finally {
             setTranscribing(false);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [t]);
 
-    // When audioBlob appears (after stopRecording), send to Whisper
     useEffect(() => {
         if (audioBlob) {
             handleTranscribe(audioBlob);
         }
     }, [audioBlob, handleTranscribe]);
 
-    // Show mic error as system message
     useEffect(() => {
         if (micError) {
             addMessage({ role: "system", text: t("micUnavailable") });
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
     }, [micError]);
 
-    // Don't render for unauthenticated users
     if (!session) return null;
 
     const { invalidateTasks, invalidateDeals, invalidateClients } = useCRMStore.getState();
@@ -143,8 +123,6 @@ export default function AIChatWidget() {
         );
     };
 
-    /* ── Send message ────────────────────────── */
-
     const handleSend = async () => {
         const text = input.trim();
         if (!text || loading) return;
@@ -155,7 +133,7 @@ export default function AIChatWidget() {
         scrollToBottom();
 
         try {
-            // Build conversation history for context (OpenAI format)
+
             const history = messages
                 .filter((m) => m.role === "user" || m.role === "ai")
                 .map((m) => ({
@@ -188,8 +166,6 @@ export default function AIChatWidget() {
         }
     };
 
-    /* ── Apply CRM action ───────────────────── */
-
     const handleApplyAction = async (msgId: number, action: ProposedAction) => {
         updateMessage(msgId, { actionStatus: "applied" });
 
@@ -215,7 +191,6 @@ export default function AIChatWidget() {
                 }
             }
 
-            // Clean payload: remove non-API keys
             const payload = { ...action.payload };
             if (action.action_type === "update_deal") {
                 delete payload.deal_id;
@@ -223,7 +198,6 @@ export default function AIChatWidget() {
 
             await api[method](endpoint, payload);
 
-            // Invalidate store → trigger auto-refresh on relevant page
             if (action.action_type === "create_task") invalidateTasks();
             else if (action.action_type === "create_deal" || action.action_type === "update_deal") invalidateDeals();
             else if (action.action_type === "create_client") invalidateClients();
@@ -247,11 +221,8 @@ export default function AIChatWidget() {
         addMessage({ role: "system", text: t("actionCancelled") });
     };
 
-    /* ── Render ──────────────────────────────── */
-
     return (
         <>
-            {/* ── FAB Button ───────────────────── */}
             <button
                 onClick={() => {
                     setOpen(!open);
@@ -270,10 +241,8 @@ export default function AIChatWidget() {
                 )}
             </button>
 
-            {/* ── Chat Window ──────────────────── */}
             {open && (
                 <div className="fixed bottom-24 right-6 z-50 w-96 h-[520px] bg-slate-900 border border-slate-700/60 rounded-2xl shadow-2xl shadow-black/40 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
-                    {/* Header */}
                     <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-700/50 bg-slate-800/50">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
@@ -294,7 +263,6 @@ export default function AIChatWidget() {
                         </button>
                     </div>
 
-                    {/* Messages */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
                         {messages.map((msg) => (
                             <MessageBubble
@@ -315,10 +283,9 @@ export default function AIChatWidget() {
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input */}
                     <div className="px-4 py-3 border-t border-slate-700/50 bg-slate-800/30">
                         {isRecording ? (
-                            /* ── Recording state ── */
+
                             <div className="flex items-center gap-3">
                                 <div className="flex-1 flex items-center gap-3 bg-slate-800/60 border border-red-500/30 rounded-xl px-4 py-2.5">
                                     <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
@@ -339,7 +306,7 @@ export default function AIChatWidget() {
                                 </button>
                             </div>
                         ) : (
-                            /* ── Normal input state ── */
+
                             <form
                                 onSubmit={(e) => {
                                     e.preventDefault();
@@ -386,8 +353,6 @@ export default function AIChatWidget() {
     );
 }
 
-/* ── Message Bubble ────────────────────────── */
-
 function MessageBubble({
     message,
     onApply,
@@ -412,7 +377,6 @@ function MessageBubble({
             >
                 <p className="whitespace-pre-wrap">{message.text}</p>
 
-                {/* Action Card */}
                 {message.proposedAction && (
                     <ActionCard
                         msgId={message.id}
@@ -426,8 +390,6 @@ function MessageBubble({
         </div>
     );
 }
-
-/* ── Action Card (Human-in-the-loop) ───────── */
 
 function ActionCard({
     msgId,
@@ -445,17 +407,14 @@ function ActionCard({
     const t = useTranslations("AIChat");
     return (
         <div className="mt-3 bg-slate-900/60 border border-slate-600/40 rounded-xl p-3">
-            {/* Label */}
             <div className="flex items-center gap-2 mb-2">
                 <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
                     {t(`actions.${action.action_type}`)}
                 </span>
             </div>
 
-            {/* Description */}
             <p className="text-xs text-slate-300 mb-3">{action.human_description}</p>
 
-            {/* Status / Buttons */}
             {status === "pending" ? (
                 <div className="flex items-center gap-2">
                     <button

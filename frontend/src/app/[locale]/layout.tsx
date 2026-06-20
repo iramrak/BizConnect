@@ -1,15 +1,3 @@
-/**
- * BizConnect CRM — Locale Layout
- *
- * This is the main layout for all localized pages.
- * Wraps children with:
- * - NextIntlClientProvider (for client-side translations)
- * - AuthProvider (next-auth session)
- * - Sidebar + AIChatWidget
- *
- * The root app/layout.tsx is now a minimal pass-through.
- */
-
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -37,12 +25,10 @@ type Props = {
 export default async function LocaleLayout({ children, params }: Props) {
     const { locale } = await params;
 
-    // Validate locale
     if (!hasLocale(routing.locales, locale)) {
         notFound();
     }
 
-    // Load messages for NextIntlClientProvider
     const messages = await getMessages();
 
     return (

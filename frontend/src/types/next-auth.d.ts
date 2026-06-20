@@ -1,10 +1,3 @@
-/**
- * Extend NextAuth types to include our custom fields:
- * - accessToken on Session
- * - role + id on Session.user
- * - custom fields on JWT
- */
-
 import "next-auth";
 import "next-auth/jwt";
 

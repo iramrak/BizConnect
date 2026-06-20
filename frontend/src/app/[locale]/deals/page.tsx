@@ -1,13 +1,3 @@
-/**
- * BizConnect CRM — Deals Kanban Board
- *
- * Features:
- * - Drag & Drop with @hello-pangea/dnd
- * - Optimistic stage change via PATCH
- * - Deal detail slide-over modal
- * - Zustand auto-refresh integration
- */
-
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -38,8 +28,6 @@ import api from "@/lib/api";
 import { useCRMStore } from "@/lib/store";
 import type { Deal, DealStage, PaginatedResponse } from "@/types";
 import CreateDealModal from "@/components/CreateDealModal";
-
-/* ── Stage config ─────────────────────────── */
 
 interface StageConfig {
     key: DealStage;
@@ -75,8 +63,6 @@ function groupByStage(deals: Deal[]): GroupedDeals {
     return grouped;
 }
 
-/* ── Page ──────────────────────────────────── */
-
 export default function DealsPage() {
     const t = useTranslations("Deals");
     const tCommon = useTranslations("Common");
@@ -103,7 +89,6 @@ export default function DealsPage() {
 
     useEffect(() => { fetchDeals(); }, [fetchDeals]);
 
-    // Auto-refresh when AI creates/updates a deal
     const dealsVersion = useCRMStore((s) => s.dealsVersion);
     useEffect(() => {
         if (dealsVersion > 0) fetchDeals();
@@ -132,7 +117,6 @@ export default function DealsPage() {
         }
     };
 
-    /* ── Drag & Drop handler ────────────── */
     const onDragEnd = (result: DropResult) => {
         const { destination, draggableId } = result;
         if (!destination) return;
@@ -152,7 +136,6 @@ export default function DealsPage() {
 
     return (
         <div className="h-full flex flex-col">
-            {/* ── Header ─────────────────────────── */}
             <div className="px-6 lg:px-8 pt-6 lg:pt-8 pb-4 shrink-0">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
@@ -179,7 +162,6 @@ export default function DealsPage() {
                 </div>
             </div>
 
-            {/* ── Kanban Board with DnD ────────────── */}
             <DragDropContext onDragEnd={onDragEnd}>
                 <div className="flex-1 overflow-x-auto overflow-y-hidden px-6 lg:px-8 pb-6">
                     <div className="flex gap-4 h-full min-w-max">
@@ -198,7 +180,6 @@ export default function DealsPage() {
                 </div>
             </DragDropContext>
 
-            {/* ── Deal Detail Modal ──────────────── */}
             {selectedDeal && (
                 <DealDetailModal
                     deal={selectedDeal}
@@ -218,8 +199,6 @@ export default function DealsPage() {
         </div>
     );
 }
-
-/* ── Kanban Column (Droppable) ─────────────── */
 
 function KanbanColumn({
     stage,
@@ -242,7 +221,6 @@ function KanbanColumn({
 
     return (
         <div className="w-72 shrink-0 flex flex-col bg-slate-800/20 border border-slate-700/30 rounded-2xl">
-            {/* Column Header */}
             <div className="px-4 py-3 border-b border-slate-700/30">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
@@ -260,7 +238,6 @@ function KanbanColumn({
                 )}
             </div>
 
-            {/* Droppable Cards Area */}
             <Droppable droppableId={stage.key}>
                 {(provided, snapshot) => (
                     <div
@@ -302,8 +279,6 @@ function KanbanColumn({
         </div>
     );
 }
-
-/* ── Deal Card ─────────────────────────────── */
 
 function DealCard({
     deal,
@@ -347,7 +322,6 @@ function DealCard({
             className={`bg-slate-800/60 border border-slate-700/40 rounded-xl p-3.5 hover:border-slate-600/60 transition-all group cursor-pointer ${isDragging ? "shadow-2xl shadow-black/50 ring-2 ring-blue-500/40 rotate-2 scale-105" : ""
                 }`}
         >
-            {/* Title + Menu */}
             <div className="flex items-start justify-between gap-2 mb-2.5">
                 <h3 className="text-sm font-medium text-white leading-snug line-clamp-2">
                     {deal.title}
@@ -402,13 +376,11 @@ function DealCard({
                 </div>
             </div>
 
-            {/* Client */}
             <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-2">
                 <User className="w-3 h-3 shrink-0" />
                 <span className="truncate">{clientName}</span>
             </div>
 
-            {/* Amount + Date */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                     <DollarSign className="w-3 h-3 text-emerald-400" />
@@ -426,7 +398,6 @@ function DealCard({
                 )}
             </div>
 
-            {/* Probability bar */}
             {deal.probability > 0 && (
                 <div className="mt-2.5">
                     <div className="flex items-center justify-between mb-1">
@@ -445,8 +416,6 @@ function DealCard({
     );
 }
 
-/* ── Deal Detail Modal (Slide-over) ──────── */
-
 function DealDetailModal({
     deal,
     onClose,
@@ -462,7 +431,6 @@ function DealDetailModal({
         ? `${deal.client.first_name} ${deal.client.last_name}`.trim()
         : "—";
 
-    // Close on Escape
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === "Escape") onClose();
@@ -473,15 +441,12 @@ function DealDetailModal({
 
     return (
         <>
-            {/* Backdrop */}
             <div
                 className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
                 onClick={onClose}
             />
 
-            {/* Panel */}
             <div className="fixed right-0 top-0 z-50 h-full w-full max-w-md bg-slate-900 border-l border-slate-700/50 shadow-2xl shadow-black/50 animate-in slide-in-from-right duration-300 overflow-y-auto">
-                {/* Header */}
                 <div className="sticky top-0 bg-slate-900/95 backdrop-blur-sm border-b border-slate-700/40 px-6 py-4 flex items-center justify-between z-10">
                     <h2 className="text-lg font-semibold text-white truncate pr-4">
                         {deal.title}
@@ -496,7 +461,6 @@ function DealDetailModal({
                 </div>
 
                 <div className="px-6 py-5 space-y-6">
-                    {/* Stage badge */}
                     <div className="flex items-center gap-2">
                         <div className={`w-3 h-3 rounded-full ${stageConfig?.dot ?? "bg-slate-500"}`} />
                         <span className="text-sm font-medium text-white">
@@ -510,7 +474,6 @@ function DealDetailModal({
                         )}
                     </div>
 
-                    {/* Amount */}
                     <div className="bg-slate-800/40 border border-slate-700/30 rounded-xl p-4">
                         <p className="text-xs text-slate-500 uppercase tracking-wider mb-1">{t("detail.budget")}</p>
                         <div className="flex items-baseline gap-2">
@@ -521,7 +484,6 @@ function DealDetailModal({
                         </div>
                     </div>
 
-                    {/* Info grid */}
                     <div className="space-y-3">
                         <DetailRow
                             icon={User}
@@ -588,8 +550,6 @@ function DetailRow({
     );
 }
 
-/* ── Skeleton Card ─────────────────────────── */
-
 function SkeletonCard() {
     return (
         <div className="bg-slate-800/60 border border-slate-700/40 rounded-xl p-3.5 animate-pulse">
@@ -602,8 +562,6 @@ function SkeletonCard() {
         </div>
     );
 }
-
-/* ── Helpers ───────────────────────────────── */
 
 function formatMoney(value: number, locale: string = "ru"): string {
     return new Intl.NumberFormat(locale, {

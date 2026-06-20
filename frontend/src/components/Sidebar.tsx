@@ -1,12 +1,3 @@
-/**
- * BizConnect CRM — Sidebar Navigation
- *
- * Features:
- * - Locale-aware links via next-intl navigation
- * - LanguageSwitcher integrated
- * - Collapsible sidebar
- */
-
 "use client";
 
 import { usePathname, Link } from "@/i18n/navigation";
@@ -51,7 +42,6 @@ export default function Sidebar() {
             className={`${collapsed ? "w-20" : "w-64"
                 } h-screen bg-slate-900 border-r border-slate-700/50 flex flex-col transition-all duration-300 shrink-0`}
         >
-            {/* Header */}
             <div className="flex items-center justify-between px-4 h-16 border-b border-slate-700/50">
                 {!collapsed && (
                     <Link href="/" className="flex items-center gap-3">
@@ -71,7 +61,6 @@ export default function Sidebar() {
                 </button>
             </div>
 
-            {/* Navigation */}
             <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
                 {navItems.map((item) => {
                     const isActive =
@@ -84,8 +73,8 @@ export default function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
-                                    ? "bg-blue-500/10 text-blue-400 shadow-sm"
-                                    : "text-slate-400 hover:text-white hover:bg-slate-800/60"
+                                ? "bg-blue-500/10 text-blue-400 shadow-sm"
+                                : "text-slate-400 hover:text-white hover:bg-slate-800/60"
                                 }`}
                             title={collapsed ? t(item.labelKey) : undefined}
                         >
@@ -99,12 +88,10 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            {/* Language Switcher */}
             <div className={`px-3 pb-2 ${collapsed ? "flex justify-center" : ""}`}>
                 <LanguageSwitcher collapsed={collapsed} />
             </div>
 
-            {/* User / Sign-out */}
             <div className="p-3 border-t border-slate-700/50">
                 <div
                     className={`flex items-center ${collapsed ? "justify-center" : "gap-3 px-3"
